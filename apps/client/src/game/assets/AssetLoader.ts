@@ -5,23 +5,8 @@ import * as THREE from 'three';
 import { AssetManifest, AssetDef } from './AssetManifest';
 import { ModelNormalizer } from './ModelNormalizer';
 
-/**
- * Resolves a public asset path (e.g. '/models/...' or '/assets/...') against Vite's BASE_URL
- * so that 3D models and textures load cleanly on both root domains and GitHub Pages subpaths.
- */
-export const OVERCOOKED_ASSET_VERSION = 'overcooked_v5';
-
-export function resolvePublicUrl(p: string): string {
-  if (/^(https?:|data:|blob:)/i.test(p)) return p;
-  const base = (import.meta as any).env?.BASE_URL || '/';
-  const cleanBase = base.endsWith('/') ? base : `${base}/`;
-  const cleanPath = p.startsWith('/') ? p.slice(1) : p;
-  const fullUrl = `${cleanBase}${cleanPath}`;
-  if (/\.(gltf|glb|fbx|bin)$/i.test(fullUrl) && !fullUrl.includes('?')) {
-    return `${fullUrl}?v=${OVERCOOKED_ASSET_VERSION}`;
-  }
-  return fullUrl;
-}
+export { CDN_BASE_URL, OVERCOOKED_ASSET_VERSION, shouldUseCdn, getCdnBaseUrl, resolvePublicUrl } from '../../config/cdn';
+import { resolvePublicUrl } from '../../config/cdn';
 
 function screenLog(msg: string) {
   let div = document.getElementById('debug-log');
@@ -199,9 +184,11 @@ export class AssetLoader {
             }
           );
         } else {
-          const loader = def.resourcePath ? new GLTFLoader().setResourcePath(resolvePublicUrl(def.resourcePath)) : this.gltfLoader;
           const rawPath = def.file.startsWith('/') ? def.file : `/models/${def.file}`;
           const basePath = resolvePublicUrl(rawPath);
+          const defaultResourcePath = basePath.substring(0, basePath.lastIndexOf('/') + 1);
+          const resourcePath = def.resourcePath ? resolvePublicUrl(def.resourcePath) : defaultResourcePath;
+          const loader = new GLTFLoader().setResourcePath(resourcePath);
           loader.load(
             basePath,
             (gltf: any) => {

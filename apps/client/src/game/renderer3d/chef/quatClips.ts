@@ -145,7 +145,10 @@ export async function loadQuatModel(modelUrl: string = QUAT_MODEL_FILE): Promise
   }
 
   const promise = (async () => {
-    const gltf = await gltfLoader.loadAsync(resolvePublicUrl(normalizedUrl));
+    const fullUrl = resolvePublicUrl(normalizedUrl);
+    const resPath = fullUrl.substring(0, fullUrl.lastIndexOf('/') + 1);
+    gltfLoader.setResourcePath(resPath);
+    const gltf = await gltfLoader.loadAsync(fullUrl);
     const model = gltf.scene;
     const rawAnimations = gltf.animations || [];
 

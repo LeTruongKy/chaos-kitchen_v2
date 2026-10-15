@@ -3,6 +3,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { loadAndPrepChefClips } from './game/renderer3d/chef/clipPrep';
+import { resolvePublicUrl } from './config/cdn';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -39,7 +40,7 @@ let clonedModel: THREE.Object3D;
 let clips: Record<string, THREE.AnimationClip>;
 const TILE_PX = 64; // as per core constants
 
-loader.load('/assets/chef/chef_model.fbx', async (fbx) => {
+loader.load(resolvePublicUrl('/assets/chef/chef_model.fbx'), async (fbx) => {
   model = fbx;
   
   // Create SkeletonUtils.clone
@@ -76,7 +77,7 @@ loader.load('/assets/chef/chef_model.fbx', async (fbx) => {
     }
   });
 
-  clips = await loadAndPrepChefClips(model, '/assets/chef');
+  clips = await loadAndPrepChefClips(model, resolvePublicUrl('/assets/chef'));
 
   mixer = new THREE.AnimationMixer(clonedModel);
   

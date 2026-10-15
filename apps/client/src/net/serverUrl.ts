@@ -53,6 +53,8 @@ export function getCustomServerUrl(): string {
   return '';
 }
 
+export const DEFAULT_SERVER_URL = 'https://chaos-kitchen-server.onrender.com';
+
 export function getServerUrl(): string {
   const custom = getCustomServerUrl();
   if (custom) {
@@ -61,10 +63,12 @@ export function getServerUrl(): string {
   if (import.meta.env.VITE_SERVER_URL) {
     return normalizeServerUrl(import.meta.env.VITE_SERVER_URL);
   }
-  if (import.meta.env.DEV) {
-    return 'ws://localhost:2567';
+  // When running directly on Render web service
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('onrender.com')) {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}`;
   }
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${protocol}//${window.location.host}`;
+  // Default to deployed Render server URL
+  return normalizeServerUrl(DEFAULT_SERVER_URL);
 }
 

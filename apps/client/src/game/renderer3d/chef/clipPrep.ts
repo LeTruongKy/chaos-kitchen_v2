@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { CHEF_ANIM_MANIFEST } from './chefAnimManifest';
+import { resolvePublicUrl } from '../../../config/cdn';
 
 /**
  * Nạp và chuẩn hóa toàn bộ clip animation cho Chef.
@@ -10,6 +11,8 @@ import { CHEF_ANIM_MANIFEST } from './chefAnimManifest';
  */
 export async function loadAndPrepChefClips(model: THREE.Object3D, basePath: string): Promise<Record<string, THREE.AnimationClip>> {
   const loader = new FBXLoader();
+  const resolvedBase = resolvePublicUrl(basePath).replace(/\/+$/, '');
+  loader.setResourcePath(`${resolvedBase}/`);
   const clips: Record<string, THREE.AnimationClip> = {};
 
   // Lấy danh sách xương thực tế từ model
@@ -21,7 +24,8 @@ export async function loadAndPrepChefClips(model: THREE.Object3D, basePath: stri
   });
 
   const promises = Object.entries(CHEF_ANIM_MANIFEST).map(async ([key, info]) => {
-    const fbx = await loader.loadAsync(`${basePath}/${info.file}`);
+    const fileUrl = `${resolvedBase}/${info.file}`;
+    const fbx = await loader.loadAsync(fileUrl);
     if (!fbx.animations || fbx.animations.length === 0) {
       console.warn(`[clipPrep] KHÔNG có animation trong ${info.file}`);
       return;

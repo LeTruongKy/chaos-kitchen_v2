@@ -39,6 +39,7 @@ export class NetClient {
   private reconnecting = false;
 
   constructor(private readonly store: Store<AppState>) {
+    // Kết nối WebSocket máy chủ Colyseus (Render: https://chaos-kitchen-server.onrender.com)
     this.currentEndpoint = getServerUrl();
     this.client = new Client(this.currentEndpoint);
   }

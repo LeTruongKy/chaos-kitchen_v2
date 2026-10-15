@@ -1,0 +1,24 @@
+[2026-10-13T07:26:17.516Z] key=idle actingStation=null scale=0.3002391621007757 h=3.164144188762194 | Đứng yên 2 giây
+[BROWSER LOG 2026-10-13T07:26:18.386Z] [QUAT] key=walk actingStation=null speed=2.60 held=false
+[2026-10-13T07:26:19.279Z] key=walk actingStation=null scale=0.3002391621007757 h=3.164144188762194 | Đi thẳng phải (ΔFootL=21.8945, ΔFootR=24.0197)
+[BROWSER LOG 2026-10-13T07:26:20.149Z] [QUAT] key=idle actingStation=null speed=0.00 held=false
+[BROWSER LOG 2026-10-13T07:26:31.272Z] [QUAT] key=walk actingStation=null speed=2.60 held=false
+[BROWSER LOG 2026-10-13T07:26:35.825Z] [QUAT] key=idle actingStation=null speed=0.00 held=false
+[BROWSER LOG 2026-10-13T07:26:57.367Z] [QUAT] key=pickup actingStation=cutting speed=0.00 held=false
+[2026-10-13T07:26:59.133Z] key=pickup actingStation=cutting scale=0.3002391621007757 h=3.164144188762194 | Đứng cạnh thớt giữ F 1 giây
+[BROWSER LOG 2026-10-13T07:26:59.722Z] [QUAT] key=idle actingStation=null speed=0.00 held=false
+[BROWSER LOG 2026-10-13T07:27:06.815Z] [QUAT] key=walk actingStation=null speed=2.60 held=false
+[BROWSER LOG 2026-10-13T07:27:16.278Z] [QUAT] key=idle actingStation=null speed=0.00 held=false
+[BROWSER LOG 2026-10-13T07:27:23.279Z] [QUAT] key=walk actingStation=null speed=2.60 held=false
+[BROWSER LOG 2026-10-13T07:27:23.879Z] [QUAT] key=idle actingStation=null speed=0.00 held=false
+[BROWSER LOG 2026-10-13T07:27:39.083Z] [QUAT] key=walk actingStation=null speed=2.60 held=false
+[BROWSER LOG 2026-10-13T07:27:42.629Z] [QUAT] key=idle actingStation=null speed=0.00 held=false
+[BROWSER LOG 2026-10-13T07:27:51.248Z] [QUAT] key=pickup actingStation=sink speed=0.00 held=false
+[2026-10-13T07:27:54.773Z] key=pickup actingStation=sink scale=0.3002391621007757 h=3.164144188762194 | Đứng quay mặt về bồn giữ F 1 giây
+[BROWSER LOG 2026-10-13T07:27:56.476Z] [QUAT] key=idle actingStation=null speed=0.00 held=false
+[BROWSER LOG 2026-10-13T07:28:05.107Z] [QUAT] key=walk actingStation=null speed=2.60 held=false
+[BROWSER LOG 2026-10-13T07:28:08.817Z] [QUAT] key=idle actingStation=null speed=0.00 held=false
+[BROWSER LOG 2026-10-13T07:28:17.526Z] [QUAT] key=carry_run actingStation=null speed=2.60 held=true
+[2026-10-13T07:28:18.157Z] key=carry_run actingStation=null scale=0.3002391621007757 h=3.164144188762194 | Cầm cà chua, đi (sau 0.5s)
+[2026-10-13T07:28:20.716Z] key=carry_run actingStation=null scale=0.3002391621007757 h=3.164144188762194 | Cầm cà chua, đi 2 giây
+[BROWSER LOG 2026-10-13T07:28:21.702Z] [QUAT] key=idle actingStation=null speed=0.00 held=true

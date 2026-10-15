@@ -1,0 +1,21 @@
+=== ĐO ĐỘ CHUYỂN ĐỘNG CHÂN BẰNG NODE.JS ===
+Track 0 boneName: mixamorigHips
+Clip: idle | Mismatches: 0 | Leg Move (0.2s): 0.0294 rad | Drift (5s): 0.0000
+Track 0 boneName: mixamorigHips
+Clip: walk | Mismatches: 0 | Leg Move (0.2s): 2.4663 rad | Drift (5s): 0.0000
+Track 0 boneName: mixamorigHips
+Clip: standard_walk | Mismatches: 0 | Leg Move (0.2s): 2.4310 rad | Drift (5s): 0.0000
+Track 0 boneName: mixamorigHips
+Clip: carry_idle | Mismatches: 0 | Leg Move (0.2s): 0.0031 rad | Drift (5s): 0.0000
+Track 0 boneName: mixamorigHips
+Clip: carry_run | Mismatches: 0 | Leg Move (0.2s): 2.0609 rad | Drift (5s): 0.0000
+Track 0 boneName: mixamorigHips
+Clip: sprint | Mismatches: 0 | Leg Move (0.2s): 3.5303 rad | Drift (5s): 0.0000
+Track 0 boneName: mixamorigHips
+Clip: throw | Mismatches: 0 | Leg Move (0.2s): 0.8333 rad | Drift (5s): 0.0000
+Track 0 boneName: mixamorigHips
+Clip: terrified | Mismatches: 0 | Leg Move (0.2s): 0.0112 rad | Drift (5s): 0.0000
+Track 0 boneName: mixamorigHips
+Clip: cheering | Mismatches: 0 | Leg Move (0.2s): 0.1134 rad | Drift (5s): 0.0000
+Track 0 boneName: mixamorigHips
+Clip: wiping_sweat | Mismatches: 0 | Leg Move (0.2s): 0.0517 rad | Drift (5s): 0.0000

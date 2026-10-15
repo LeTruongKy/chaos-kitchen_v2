@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head><title>FBX Debug</title></head>
+<body>
+<h1>FBX Bone Debug</h1>
+<pre id="output">Loading...</pre>
+<script type="module">
+import * as THREE from '/node_modules/three/build/three.module.js';
+import { FBXLoader } from '/node_modules/three/examples/jsm/loaders/FBXLoader.js';
+
+const out = document.getElementById('output');
+function log(msg) {
+  out.textContent += msg + '\n';
+  console.log(msg);
+}
+
+const loader = new FBXLoader();
+
+// Load main model
+loader.load('/models/minion/ImageToStl_chef_minion.fbx', (fbx) => {
+  log('=== MAIN MODEL ===');
+  log('Embedded animations: ' + (fbx.animations?.length || 0));
+  fbx.animations?.forEach((clip, i) => {
+    log(`  Anim[${i}] name="${clip.name}" tracks=${clip.tracks.length} duration=${clip.duration.toFixed(2)}s`);
+    clip.tracks.slice(0, 5).forEach(t => log(`    track: ${t.name}`));
+  });
+  
+  const bones = [];
+  fbx.traverse(obj => {
+    if (obj.isBone || obj.type === 'Bone') bones.push(obj.name);
+  });
+  log('Bones (' + bones.length + '): ' + bones.join(', '));
+  
+  const allNodes = [];
+  fbx.traverse(obj => allNodes.push(obj.name));
+  log('All nodes (' + allNodes.length + '): ' + allNodes.join(', '));
+  
+  // Now load Walking animation
+  const loader2 = new FBXLoader();
+  loader2.load('/models/minion/Walking.fbx', (animFbx) => {
+    log('\n=== WALKING ANIMATION ===');
+    log('Animations: ' + (animFbx.animations?.length || 0));
+    animFbx.animations?.forEach((clip, i) => {
+      log(`  Anim[${i}] name="${clip.name}" tracks=${clip.tracks.length} duration=${clip.duration.toFixed(2)}s`);
+      clip.tracks.forEach(t => log(`    track: ${t.name}`));
+    });
+    
+    // Check if track names match bones
+    if (animFbx.animations?.[0]) {
+      const clip = animFbx.animations[0];
+      log('\n=== RETARGET CHECK ===');
+      const boneSet = new Set(allNodes);
+      clip.tracks.forEach(t => {
+        const dotIdx = t.name.lastIndexOf('.');
+        const fullPath = t.name.substring(0, dotIdx);
+        const prop = t.name.substring(dotIdx + 1);
+        const slashIdx = fullPath.lastIndexOf('/');
+        const boneName = slashIdx >= 0 ? fullPath.substring(slashIdx + 1) : fullPath;
+        const match = boneSet.has(boneName) ? 'MATCH' : 'MISS';
+        log(`  ${boneName}.${prop} -> ${match}`);
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>

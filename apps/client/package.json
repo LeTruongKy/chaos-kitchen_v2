@@ -1,0 +1,28 @@
+{
+  "name": "@kitchen/client",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run --fileParallelism=false",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@kitchen/core": "workspace:*",
+    "@types/three": "^0.186.0",
+    "buffer": "6.0.3",
+    "colyseus.js": "0.16.22",
+    "phaser": "3.80.1",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@colyseus/core": "0.16.26",
+    "@colyseus/ws-transport": "0.16.5",
+    "@kitchen/server": "workspace:^",
+    "express": "4.21.0",
+    "jsdom": "25.0.1",
+    "typescript": "5.6.2",
+    "vite": "5.4.8"
+  }
+}

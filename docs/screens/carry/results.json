@@ -1,0 +1,20 @@
+{
+  "tomato": {
+    "error": "TypeError: Cannot read properties of undefined (reading 'box')\n    at eval (eval at evaluate (:311:30), <anonymous>:24:44)\n    at async <anonymous>:337:30"
+  },
+  "meat": {
+    "error": "TypeError: Cannot read properties of undefined (reading 'box')\n    at eval (eval at evaluate (:311:30), <anonymous>:24:44)\n    at async <anonymous>:337:30"
+  },
+  "bun": {
+    "error": "TypeError: Cannot read properties of undefined (reading 'box')\n    at eval (eval at evaluate (:311:30), <anonymous>:24:44)\n    at async <anonymous>:337:30"
+  },
+  "plate": {
+    "error": "TypeError: Cannot read properties of undefined (reading 'box')\n    at eval (eval at evaluate (:311:30), <anonymous>:24:44)\n    at async <anonymous>:337:30"
+  },
+  "pan": {
+    "error": "TypeError: Cannot read properties of undefined (reading 'box')\n    at eval (eval at evaluate (:311:30), <anonymous>:24:44)\n    at async <anonymous>:337:30"
+  },
+  "pot": {
+    "error": "TypeError: Cannot read properties of undefined (reading 'box')\n    at eval (eval at evaluate (:311:30), <anonymous>:24:44)\n    at async <anonymous>:337:30"
+  }
+}

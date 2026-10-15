@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+apps/client/dist
+apps/server/dist
+.git
+.github
+*.log
+playwright-report
+test-results
+raw-assets
+scratch
+__pycache__
+**/__pycache__
+*.pyc
+*.zip
+

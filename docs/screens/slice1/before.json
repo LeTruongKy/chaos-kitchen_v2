@@ -1,0 +1,1632 @@
+{
+  "loadStatus": {
+    "station_counter": true,
+    "station_sink": true,
+    "station_stove": true,
+    "station_trash": true,
+    "station_drawer": true,
+    "tomato_sliced": true,
+    "tomato": true,
+    "lettuce": true,
+    "lettuce_chopped": true,
+    "bun_bottom": true,
+    "bun_top": true,
+    "patty": true,
+    "plate": true,
+    "pan": true,
+    "pot": true,
+    "extinguisher": true,
+    "crate_barrel": true,
+    "chef": true
+  },
+  "rows": [
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        95.57,
+        0,
+        95.549
+      ],
+      "max": [
+        96.43,
+        0.9,
+        96.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        96,
+        0,
+        96
+      ],
+      "worldPos": [
+        96,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.642
+    },
+    {
+      "file": "barrel.glb",
+      "id": "crate_barrel",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        159.496,
+        0,
+        95.55
+      ],
+      "max": [
+        160.504,
+        0.9,
+        96.45
+      ],
+      "size": [
+        1.008,
+        0.9,
+        0.9
+      ],
+      "parentPos": [
+        160,
+        0,
+        96
+      ],
+      "worldPos": [
+        160,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.843
+    },
+    {
+      "file": "barrel.glb",
+      "id": "crate_barrel",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        223.496,
+        0,
+        95.55
+      ],
+      "max": [
+        224.504,
+        0.9,
+        96.45
+      ],
+      "size": [
+        1.008,
+        0.9,
+        0.9
+      ],
+      "parentPos": [
+        224,
+        0,
+        96
+      ],
+      "worldPos": [
+        224,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.893
+    },
+    {
+      "file": "barrel.glb",
+      "id": "crate_barrel",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        287.496,
+        0,
+        95.55
+      ],
+      "max": [
+        288.504,
+        0.9,
+        96.45
+      ],
+      "size": [
+        1.008,
+        0.9,
+        0.9
+      ],
+      "parentPos": [
+        288,
+        0,
+        96
+      ],
+      "worldPos": [
+        288,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.944
+    },
+    {
+      "file": "barrel.glb",
+      "id": "crate_barrel",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        351.496,
+        0,
+        95.55
+      ],
+      "max": [
+        352.504,
+        0.9,
+        96.45
+      ],
+      "size": [
+        1.008,
+        0.9,
+        0.9
+      ],
+      "parentPos": [
+        352,
+        0,
+        96
+      ],
+      "worldPos": [
+        352,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.995
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        415.57,
+        0,
+        95.549
+      ],
+      "max": [
+        416.43,
+        0.9,
+        96.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        416,
+        0,
+        96
+      ],
+      "worldPos": [
+        416,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.896
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        479.57,
+        0,
+        95.549
+      ],
+      "max": [
+        480.43,
+        0.9,
+        96.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        480,
+        0,
+        96
+      ],
+      "worldPos": [
+        480,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.946
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        543.57,
+        0,
+        95.549
+      ],
+      "max": [
+        544.43,
+        0.9,
+        96.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        544,
+        0,
+        96
+      ],
+      "worldPos": [
+        544,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.997
+    },
+    {
+      "file": "kitchenSink.glb",
+      "id": "station_sink",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        607.605,
+        0,
+        95.585
+      ],
+      "max": [
+        608.395,
+        0.9,
+        96.415
+      ],
+      "size": [
+        0.79,
+        0.9,
+        0.829
+      ],
+      "parentPos": [
+        608,
+        0,
+        96
+      ],
+      "worldPos": [
+        608,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.973
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        671.57,
+        0,
+        95.549
+      ],
+      "max": [
+        672.43,
+        0.9,
+        96.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        672,
+        0,
+        96
+      ],
+      "worldPos": [
+        672,
+        0,
+        96
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 1.098
+    },
+    {
+      "file": "kitchenCabinetDrawer.glb",
+      "id": "station_drawer",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        95.549,
+        0,
+        159.57
+      ],
+      "max": [
+        96.451,
+        0.9,
+        160.43
+      ],
+      "size": [
+        0.903,
+        0.9,
+        0.86
+      ],
+      "parentPos": [
+        96,
+        0,
+        160
+      ],
+      "worldPos": [
+        96,
+        0,
+        160
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.694
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        671.549,
+        0,
+        159.57
+      ],
+      "max": [
+        672.451,
+        0.9,
+        160.43
+      ],
+      "size": [
+        0.903,
+        0.9,
+        0.86
+      ],
+      "parentPos": [
+        672,
+        0,
+        160
+      ],
+      "worldPos": [
+        672,
+        0,
+        160
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": -1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 1.158
+    },
+    {
+      "file": "kitchenCabinetDrawer.glb",
+      "id": "station_drawer",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        95.549,
+        0,
+        223.57
+      ],
+      "max": [
+        96.451,
+        0.9,
+        224.43
+      ],
+      "size": [
+        0.903,
+        0.9,
+        0.86
+      ],
+      "parentPos": [
+        96,
+        0,
+        224
+      ],
+      "worldPos": [
+        96,
+        0,
+        224
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.701
+    },
+    {
+      "file": "trashcan.glb",
+      "id": "station_trash",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        671.754,
+        0,
+        223.782
+      ],
+      "max": [
+        672.246,
+        0.9,
+        224.218
+      ],
+      "size": [
+        0.492,
+        0.9,
+        0.437
+      ],
+      "parentPos": [
+        672,
+        0,
+        224
+      ],
+      "worldPos": [
+        672,
+        0,
+        224
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": -1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.722
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        95.549,
+        0,
+        287.57
+      ],
+      "max": [
+        96.451,
+        0.9,
+        288.43
+      ],
+      "size": [
+        0.903,
+        0.9,
+        0.86
+      ],
+      "parentPos": [
+        96,
+        0,
+        288
+      ],
+      "worldPos": [
+        96,
+        0,
+        288
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.709
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        671.549,
+        0,
+        287.57
+      ],
+      "max": [
+        672.451,
+        0.9,
+        288.43
+      ],
+      "size": [
+        0.903,
+        0.9,
+        0.86
+      ],
+      "parentPos": [
+        672,
+        0,
+        288
+      ],
+      "worldPos": [
+        672,
+        0,
+        288
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": -1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 1.202
+    },
+    {
+      "file": "kitchenStove.glb",
+      "id": "station_stove",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        95.549,
+        0,
+        351.57
+      ],
+      "max": [
+        96.451,
+        0.9,
+        352.43
+      ],
+      "size": [
+        0.903,
+        0.9,
+        0.86
+      ],
+      "parentPos": [
+        96,
+        0,
+        352
+      ],
+      "worldPos": [
+        96,
+        0,
+        352
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.716
+    },
+    {
+      "file": "pan.glb",
+      "id": "pan",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        95.534,
+        60.8,
+        351.7
+      ],
+      "max": [
+        96.466,
+        60.91,
+        352.3
+      ],
+      "size": [
+        0.933,
+        0.11,
+        0.6
+      ],
+      "parentPos": [
+        0,
+        60.8,
+        0
+      ],
+      "worldPos": [
+        96,
+        60.8,
+        352
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.97
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        671.549,
+        0,
+        351.57
+      ],
+      "max": [
+        672.451,
+        0.9,
+        352.43
+      ],
+      "size": [
+        0.903,
+        0.9,
+        0.86
+      ],
+      "parentPos": [
+        672,
+        0,
+        352
+      ],
+      "worldPos": [
+        672,
+        0,
+        352
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": -1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 1.225
+    },
+    {
+      "file": "kitchenStove.glb",
+      "id": "station_stove",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        95.549,
+        0,
+        415.57
+      ],
+      "max": [
+        96.451,
+        0.9,
+        416.43
+      ],
+      "size": [
+        0.903,
+        0.9,
+        0.86
+      ],
+      "parentPos": [
+        96,
+        0,
+        416
+      ],
+      "worldPos": [
+        96,
+        0,
+        416
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.723
+    },
+    {
+      "file": "pan.glb",
+      "id": "pan",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        95.534,
+        60.8,
+        415.7
+      ],
+      "max": [
+        96.466,
+        60.91,
+        416.3
+      ],
+      "size": [
+        0.933,
+        0.11,
+        0.6
+      ],
+      "parentPos": [
+        0,
+        60.8,
+        0
+      ],
+      "worldPos": [
+        96,
+        60.8,
+        416
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.985
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        671.549,
+        0,
+        415.57
+      ],
+      "max": [
+        672.451,
+        0.9,
+        416.43
+      ],
+      "size": [
+        0.903,
+        0.9,
+        0.86
+      ],
+      "parentPos": [
+        672,
+        0,
+        416
+      ],
+      "worldPos": [
+        672,
+        0,
+        416
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": -1.571,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 1.249
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        95.57,
+        0,
+        479.549
+      ],
+      "max": [
+        96.43,
+        0.9,
+        480.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        96,
+        0,
+        480
+      ],
+      "worldPos": [
+        96,
+        0,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.772
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        159.57,
+        0,
+        479.549
+      ],
+      "max": [
+        160.43,
+        0.9,
+        480.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        160,
+        0,
+        480
+      ],
+      "worldPos": [
+        160,
+        0,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 3.142,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.772
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        223.57,
+        0,
+        479.549
+      ],
+      "max": [
+        224.43,
+        0.9,
+        480.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        224,
+        0,
+        480
+      ],
+      "worldPos": [
+        224,
+        0,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 3.142,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.803
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        287.57,
+        0,
+        479.549
+      ],
+      "max": [
+        288.43,
+        0.9,
+        480.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        288,
+        0,
+        480
+      ],
+      "worldPos": [
+        288,
+        0,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 3.142,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.864
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        351.57,
+        0,
+        479.549
+      ],
+      "max": [
+        352.43,
+        0.9,
+        480.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        352,
+        0,
+        480
+      ],
+      "worldPos": [
+        352,
+        0,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 3.142,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.925
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        415.57,
+        0,
+        479.549
+      ],
+      "max": [
+        416.43,
+        0.9,
+        480.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        416,
+        0,
+        480
+      ],
+      "worldPos": [
+        416,
+        0,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 3.142,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.986
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        479.57,
+        0,
+        479.549
+      ],
+      "max": [
+        480.43,
+        0.9,
+        480.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        480,
+        0,
+        480
+      ],
+      "worldPos": [
+        480,
+        0,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 3.142,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 1.047
+    },
+    {
+      "file": "bottle-ketchup.glb",
+      "id": "extinguisher",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        543.853,
+        60.8,
+        479.831
+      ],
+      "max": [
+        544.147,
+        61.6,
+        480.169
+      ],
+      "size": [
+        0.293,
+        0.8,
+        0.339
+      ],
+      "parentPos": [
+        0,
+        60.8,
+        0
+      ],
+      "worldPos": [
+        544,
+        60.8,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.466
+    },
+    {
+      "file": "bottle-ketchup.glb",
+      "id": "extinguisher",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        607.853,
+        60.8,
+        479.831
+      ],
+      "max": [
+        608.147,
+        61.6,
+        480.169
+      ],
+      "size": [
+        0.293,
+        0.8,
+        0.339
+      ],
+      "parentPos": [
+        0,
+        60.8,
+        0
+      ],
+      "worldPos": [
+        608,
+        60.8,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial"
+      ],
+      "screenPx": 0.516
+    },
+    {
+      "file": "kitchenCabinet.glb",
+      "id": "station_counter",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        671.57,
+        0,
+        479.549
+      ],
+      "max": [
+        672.43,
+        0.9,
+        480.451
+      ],
+      "size": [
+        0.86,
+        0.9,
+        0.903
+      ],
+      "parentPos": [
+        672,
+        0,
+        480
+      ],
+      "worldPos": [
+        672,
+        0,
+        480
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 1.23
+    },
+    {
+      "file": "chef.glb",
+      "id": "chef",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        365.208,
+        0,
+        237.526
+      ],
+      "max": [
+        402.792,
+        42.301,
+        277
+      ],
+      "size": [
+        37.585,
+        42.301,
+        39.474
+      ],
+      "parentPos": [
+        384,
+        0,
+        256
+      ],
+      "worldPos": [
+        384,
+        0,
+        256
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 40.072
+    },
+    {
+      "file": "chef.glb",
+      "id": "chef",
+      "inScene": true,
+      "visible": true,
+      "min": [
+        429.208,
+        0,
+        237.526
+      ],
+      "max": [
+        466.792,
+        42.301,
+        277
+      ],
+      "size": [
+        37.585,
+        42.301,
+        39.474
+      ],
+      "parentPos": [
+        448,
+        0,
+        256
+      ],
+      "worldPos": [
+        448,
+        0,
+        256
+      ],
+      "worldScale": [
+        1,
+        1,
+        1
+      ],
+      "rotY": 0,
+      "inFrustum": true,
+      "pixelHeightApprox": null,
+      "meshes": [
+        "MeshToonMaterial",
+        "MeshToonMaterial",
+        "MeshToonMaterial"
+      ],
+      "screenPx": 42.666
+    }
+  ],
+  "tilePx": 64,
+  "console": [
+    "[log] [ModelNormalizer] kitchenCabinet.glb size before scale: _Vector3",
+    "[log] [ModelNormalizer] kitchenSink.glb size before scale: _Vector3",
+    "[log] [ModelNormalizer] kitchenStove.glb size before scale: _Vector3",
+    "[log] [ModelNormalizer] trashcan.glb size before scale: _Vector3",
+    "[log] [ModelNormalizer] kitchenCabinetDrawer.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] tomato_sliced.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] tomato.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] lettuce.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] lettuce_chopped.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] bun_bottom.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] bun_top.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] patty.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] plate.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] pan.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] pot.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] bottle-ketchup.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] barrel.glb size before scale: _Vector3",
+    "[error] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png",
+    "[log] [ModelNormalizer] chef.glb size before scale: _Vector3",
+    "[warning] [.WebGL-0x6ddc00406a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[warning] [.WebGL-0x6ddc00406a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[warning] [.WebGL-0x6ddc00406a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[warning] [.WebGL-0x6ddc00406a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+  ]
+}

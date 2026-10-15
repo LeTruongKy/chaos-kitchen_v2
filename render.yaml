@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: chaos-kitchen
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        value: "*"

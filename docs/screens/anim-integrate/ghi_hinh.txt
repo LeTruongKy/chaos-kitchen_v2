@@ -1,0 +1,7 @@
+=== GHI HÌNH IN-GAME ===
+Trạng thái: unknown, Speed: 0.00, TimeScale: 1.00, Clip: 
+Trạng thái: unknown, Speed: 0.00, TimeScale: 1.00, Clip: 
+Trạng thái (sau khi nhặt): unknown, Clip: 
+Trạng thái: unknown, Speed: 0.00, TimeScale: 1.00, Clip: 
+Trạng thái: unknown, Clip: 
+Trạng thái: unknown, Speed: 0.00, Clip: 

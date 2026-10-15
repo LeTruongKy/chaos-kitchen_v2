@@ -1,0 +1,74 @@
+Navigating to http://localhost:5173/anim-test.html ...
+Page loaded. Running checks...
+=== CHỨNG MINH MATERIAL & HEIGHT ===
+Mesh: obj11, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj12, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj13, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj14, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj15, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj16, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj17, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj19, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj2, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj3, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj4, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj5, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj6, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj7, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj8, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj9, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj18, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj1, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+Mesh: obj10, MatType: MeshPhongMaterial
+  -> Changed to MeshToonMaterial
+
+Scale applied: 0.0101, Height in units: 2.20 (Target ~ 2.2 tile/units)
+
+--- BÀI TEST CLIP: idle ---
++ Độ dịch chuyển Xương (0.25s): L=0.0017, R=0.0016 | Tổng: 0.0033
++ Độ dịch chuyển Lưới (CPU Skinning, 10 đỉnh đầu): 0.090245
+
+--- BÀI TEST CLIP: walk ---
++ Độ dịch chuyển Xương (0.25s): L=0.1947, R=0.1706 | Tổng: 0.3653
++ Độ dịch chuyển Lưới (CPU Skinning, 10 đỉnh đầu): 5.545810
++ Hips Drift (Ngang) sau 5s: 0.0000
+
+--- BÀI TEST CLIP: carry_run ---
++ Độ dịch chuyển Xương (0.25s): L=0.1152, R=0.1227 | Tổng: 0.2379
++ Độ dịch chuyển Lưới (CPU Skinning, 10 đỉnh đầu): 0.272125
+
+--- BÀI TEST CLIP: sprint ---
++ Độ dịch chuyển Xương (0.25s): L=0.2142, R=0.2079 | Tổng: 0.4221
++ Độ dịch chuyển Lưới (CPU Skinning, 10 đỉnh đầu): 1.976889
+
+--- BÀI TEST CLIP: throw ---
++ Độ dịch chuyển Xương (0.25s): L=0.0051, R=0.0156 | Tổng: 0.0207
++ Độ dịch chuyển Lưới (CPU Skinning, 10 đỉnh đầu): 3.782430
+Chụp ảnh: walk_t0.png
+Chụp ảnh: walk_t0_25.png
+Chụp ảnh: walk_t0_50.png
+Chụp ảnh: carry_run_t0.png
+Chụp ảnh: carry_run_t0_25.png
+Chụp ảnh: carry_run_t0_50.png
+Chụp ảnh: sprint_t0.png
+Chụp ảnh: sprint_t0_25.png
+Chụp ảnh: sprint_t0_50.png
+Chụp ảnh: idle_t0.png

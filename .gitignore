@@ -1,0 +1,15 @@
+node_modules
+dist
+.env
+coverage
+.DS_Store
+package-lock.json
+*.zip
+playwright-report
+test-results
+raw-assets
+scratch
+__pycache__/
+*.pyc
+*.blend1
+

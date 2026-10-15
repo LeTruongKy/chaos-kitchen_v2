@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>Outline Test</title></head>
+<body style="margin:0;background:#222">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x333333);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(0, 5, 10);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const light = new THREE.DirectionalLight(0xffffff, 2);
+light.position.set(5, 10, 5);
+scene.add(light);
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+const outlineMaterial = new THREE.MeshBasicMaterial({
+  color: 0x1b1b1b,
+  side: THREE.BackSide,
+});
+
+function withOutline(mesh, thickness = 1.04) {
+  const group = new THREE.Group();
+  const outlineMesh = new THREE.Mesh(mesh.geometry, outlineMaterial);
+  outlineMesh.scale.multiplyScalar(thickness);
+  outlineMesh.userData = { isOutline: true };
+  group.add(mesh);
+  group.add(outlineMesh);
+  group.position.copy(mesh.position);
+  group.rotation.copy(mesh.rotation);
+  group.scale.copy(mesh.scale);
+  mesh.position.set(0, 0, 0);
+  mesh.rotation.set(0, 0, 0);
+  mesh.scale.set(1, 1, 1);
+  return group;
+}
+
+const baseGeo = new THREE.BoxGeometry(1, 0.9, 1);
+const mesh = new THREE.Mesh(baseGeo, new THREE.MeshToonMaterial({color: 0xdddddd}));
+mesh.position.y = 0.45;
+
+const group = withOutline(mesh);
+scene.add(group);
+
+function animate() {
+  requestAnimationFrame(animate);
+  group.rotation.y += 0.01;
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>

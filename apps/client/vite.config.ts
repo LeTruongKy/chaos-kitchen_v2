@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/chaos-kitchen/' : '/',
+  base: command === "build" ? "/chaos-kitchen_v2/" : "/",
   define: {
     global: 'globalThis',
   },

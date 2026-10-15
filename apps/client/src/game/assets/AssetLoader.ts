@@ -34,7 +34,7 @@ export class AssetLoader {
   private static instance: AssetLoader;
   private gltfLoader = new GLTFLoader();
   private fbxLoader = new FBXLoader();
-  
+
   // Cache of original normalized scenes
   private modelCache = new Map<string, { scene: THREE.Group, animations: THREE.AnimationClip[] } | null>();
   // Cache of loaded promises to prevent duplicate loads
@@ -82,25 +82,25 @@ export class AssetLoader {
       // Track name format: "path/to/BoneName.property" (e.g. "mixamorig:Hips.quaternion")
       const dotIdx = track.name.lastIndexOf('.');
       if (dotIdx === -1) return;
-      
+
       const fullPath = track.name.substring(0, dotIdx);
       const property = track.name.substring(dotIdx + 1);
-      
+
       // Get just the last node name (the bone itself, stripping any parent path)
       const slashIdx = fullPath.lastIndexOf('/');
       const boneName = slashIdx >= 0 ? fullPath.substring(slashIdx + 1) : fullPath;
-      
+
       const originalName = track.name;
-      
+
       // Try exact match first
       if (boneNameSet.has(boneName)) {
         track.name = `${boneName}.${property}`;
         return;
       }
-      
+
       // Try stripping mixamorig: or mixamorig prefix case-insensitively
       const stripped = boneName.replace(/^mixamorig:?/i, '').toLowerCase();
-      
+
       // Look for the bone with or without prefix
       for (const modelBone of boneNameSet) {
         const modelStripped = modelBone.replace(/^mixamorig:?/i, '').toLowerCase();
@@ -109,7 +109,7 @@ export class AssetLoader {
           return;
         }
       }
-      
+
       if (track.name === originalName) {
         // Fallback
         track.name = `${boneName}.${property}`;
@@ -137,7 +137,7 @@ export class AssetLoader {
     if (!this.loadPromises.has(id)) {
       const p = new Promise<void>((resolve) => {
         const isFbx = def.file.toLowerCase().endsWith('.fbx');
-        
+
         if (isFbx) {
           const rawPath = def.file.startsWith('/') ? def.file : `/models/${def.file}`;
           const basePath = resolvePublicUrl(rawPath);
@@ -158,12 +158,12 @@ export class AssetLoader {
                   fbx.traverse(obj => {
                     if (obj.name) boneNameSet.add(obj.name);
                   });
-                  
+
                   // Retarget embedded animations
                   animations = fbx.animations || [];
                   animations.forEach(clip => this.retargetClip(clip, boneNameSet));
                 }
-                
+
                 // No longer use def.animationFiles here (handled by clipPrep.ts)
 
                 console.log(`[AssetLoader] Total animations for "${id}":`, animations.map(c => c.name));
@@ -220,7 +220,7 @@ export class AssetLoader {
   private cloneCached(id: string, def: AssetDef): { scene: THREE.Group, animations: THREE.AnimationClip[] } | null {
     const cached = this.modelCache.get(id);
     if (!cached) return null; // Using fallback
-    
+
     // SkeletonUtils.clone is required for SkinnedMesh, but works for normal meshes too.
     const clonedScene = def.kind === 'character' ? (SkeletonUtils as any).clone(cached.scene) : cached.scene.clone(true);
     // Tag for debugging / visual audit

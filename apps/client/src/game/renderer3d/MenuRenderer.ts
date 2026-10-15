@@ -21,36 +21,36 @@ export class MenuRenderer {
   private dirLight: THREE.DirectionalLight | null = null;
   private unsubSettings: (() => void) | null = null;
   private disposed = false;
-  
+
   constructor(container: HTMLElement) {
     this.container = container;
     this.renderer = getSharedWebGLRenderer();
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(this.renderer.domElement);
-    
+
     this.overlay = document.createElement('div');
     this.overlay.style.position = 'absolute';
     this.overlay.style.inset = '0';
     this.overlay.style.pointerEvents = 'none';
     this.overlay.style.zIndex = '10';
     container.appendChild(this.overlay);
-    
+
     this.scene = new THREE.Scene();
     const theme = (THEMES['diner'] || THEMES['ship']) as any;
     this.scene.background = new THREE.Color(theme.background || 0x2b1e16);
     this.scene.fog = new THREE.FogExp2(theme.fogColor || 0x2b1e16, 0.0009);
-    
+
     const aspect = (container.clientWidth || 800) / (container.clientHeight || 600);
     this.camera = new THREE.PerspectiveCamera(34, aspect, 1, 5000);
     this.camera.position.set(42, 118, 235);
     this.camera.lookAt(42, 34, -10);
-    
+
     // Warm Overcooked / Ready Set Cook Diorama Lighting
     this.dirLight = new THREE.DirectionalLight(0xffe6c2, 1.55);
     this.dirLight.position.set(90, 160, 110);
     this.dirLight.castShadow = true;
     this.scene.add(this.dirLight);
-    
+
     const hemi = new THREE.HemisphereLight(0xfff6e5, 0xc89d7c, 0.85);
     this.scene.add(hemi);
 
@@ -69,12 +69,12 @@ export class MenuRenderer {
     this.unsubSettings = subscribeSettings((s) => {
       if (!this.disposed) this.setQuality(s.quality);
     });
-    
+
     this.initScene();
     this.animate = this.animate.bind(this);
     this.lastTime = performance.now();
     this.animate();
-    
+
     this.onResize = this.onResize.bind(this);
     window.addEventListener('resize', this.onResize);
   }
@@ -94,7 +94,7 @@ export class MenuRenderer {
       }
     }
   }
-  
+
   private onResize() {
     if (this.disposed || !this.renderer) return;
     const w = this.container.clientWidth;
@@ -103,14 +103,14 @@ export class MenuRenderer {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
   }
-  
+
   private async initScene() {
     // 1. Outer warm wooden restaurant surround
     const floorGeo = new THREE.PlaneGeometry(1400, 1400);
-    const floorMat = new THREE.MeshStandardMaterial({ 
-      color: 0x3b261a, 
-      roughness: 0.75, 
-      metalness: 0.05 
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0x3b261a,
+      roughness: 0.75,
+      metalness: 0.05
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -215,7 +215,7 @@ export class MenuRenderer {
         chef1.loadQuat(res);
         chef1.playAnim('victory', 0.2);
       }
-    }).catch(() => {});
+    }).catch(() => { });
 
     chef2.group.position.set(95, 0, 18);
     chef2.group.rotation.y = -0.25;
@@ -225,16 +225,16 @@ export class MenuRenderer {
         chef2.loadQuat(res);
         chef2.playAnim('idle', 0.2);
       }
-    }).catch(() => {});
+    }).catch(() => { });
 
     this.scene.add(chef1.group);
     this.scene.add(chef2.group);
     this.menuChefs = [chef1, chef2];
   }
-  
+
   updatePlayers(players: LobbyPlayer[]) {
     if (this.disposed) return;
-    
+
     // In menu (0 players): show the 2 idle menu chefs
     if (!players || players.length === 0) {
       for (const c of this.menuChefs) {
@@ -258,7 +258,7 @@ export class MenuRenderer {
     }
 
     const currentIds = new Set(players.map(p => p.id));
-    
+
     for (const [id, chef] of this.chefs.entries()) {
       if (!currentIds.has(id)) {
         this.scene.remove(chef.group);
@@ -269,7 +269,7 @@ export class MenuRenderer {
         this.nameTags.delete(id);
       }
     }
-    
+
     players.forEach((p, i) => {
       let chef = this.chefs.get(p.id);
       if (!chef) {
@@ -280,10 +280,10 @@ export class MenuRenderer {
         const targetChef = chef;
         loadQuatModel(modelUrl).then(res => {
           if (!this.disposed) targetChef.loadQuat(res);
-        }).catch(() => {});
+        }).catch(() => { });
         this.scene.add(chef.group);
         this.chefs.set(p.id, chef);
-        
+
         const tag = document.createElement('div');
         tag.style.position = 'absolute';
         tag.style.color = '#fff';
@@ -294,21 +294,21 @@ export class MenuRenderer {
         this.overlay.appendChild(tag);
         this.nameTags.set(p.id, tag);
       }
-      
+
       const tag = this.nameTags.get(p.id)!;
       tag.innerHTML = `${p.name}<br/>${p.ready ? '✅' : '⏳'}`;
-      
+
       // Position evenly across the screen, offset to the left for the lobby panel
       const spacing = 40;
       const offsetX = (i - (players.length - 1) / 2) * spacing - 60;
       chef.group.position.set(offsetX, 0, 0);
     });
   }
-  
+
   private animate() {
     if (this.disposed) return;
     this.animationId = requestAnimationFrame(this.animate);
-    
+
     const now = performance.now();
     const dtSec = Math.min((now - this.lastTime) * 0.001, 0.1);
     this.lastTime = now;
@@ -330,14 +330,14 @@ export class MenuRenderer {
         chef.update(dtSec);
       }
     }
-    
+
     // 2. If lobby chefs are active
     let index = 0;
     for (const [id, chef] of this.chefs.entries()) {
       chef.group.position.y = Math.sin(time * 2 + index) * 2;
       chef.group.rotation.y = Math.PI * 0.1 + Math.sin(time * 0.8 + index) * 0.15;
       chef.update(dtSec);
-      
+
       const tag = this.nameTags.get(id);
       if (tag && this.camera) {
         const pos = chef.group.position.clone();
@@ -351,12 +351,12 @@ export class MenuRenderer {
       }
       index++;
     }
-    
+
     if (this.renderer) {
       this.renderer.render(this.scene, this.camera);
     }
   }
-  
+
   dispose() {
     this.disposed = true;
     cancelAnimationFrame(this.animationId);
@@ -365,13 +365,13 @@ export class MenuRenderer {
       this.unsubSettings();
       this.unsubSettings = null;
     }
-    
+
     if (this.renderer && this.renderer.domElement.parentElement === this.container) {
       this.container.removeChild(this.renderer.domElement);
     }
-    
+
     if (this.overlay) this.overlay.remove();
-    
+
     for (const chef of this.menuChefs) {
       chef.dispose();
     }
@@ -386,7 +386,7 @@ export class MenuRenderer {
       tag.remove();
     }
     this.nameTags.clear();
-    
+
     if (this.scene) {
       this.scene.traverse((obj) => {
         if (obj instanceof THREE.Mesh) {

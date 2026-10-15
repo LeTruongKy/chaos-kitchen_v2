@@ -42,11 +42,11 @@ const TILE_PX = 64; // as per core constants
 
 loader.load(resolvePublicUrl('/assets/chef/chef_model.fbx'), async (fbx) => {
   model = fbx;
-  
+
   // Create SkeletonUtils.clone
   clonedModel = SkeletonUtils.clone(model);
   scene.add(clonedModel);
-  
+
   // Model Normalizer logic: original model is ~220 units tall. Target is 2.2 tiles.
   // Wait, "kiểm tra công thức chuẩn hóa có nhân nhầm TILE_PX không, nếu 1 tile = 1 đơn vị cảnh thì bỏ nhân đó"
   // Yes! In standard Three.js, 1 unit = 1 tile is much easier. Let's make it 2.2 units tall (so 2.2 tiles).
@@ -66,8 +66,8 @@ loader.load(resolvePublicUrl('/assets/chef/chef_model.fbx'), async (fbx) => {
       if (mat) {
         materialsLog += `Mesh: ${mesh.name}, MatType: ${mat.type}\n`;
         if (mat.type === 'ShaderMaterial' || mat.type === 'MeshPhongMaterial') {
-          const toon = new THREE.MeshToonMaterial({ 
-            map: (mat as any).map, 
+          const toon = new THREE.MeshToonMaterial({
+            map: (mat as any).map,
             color: (mat as any).color || 0xffffff
           });
           mesh.material = toon;
@@ -80,7 +80,7 @@ loader.load(resolvePublicUrl('/assets/chef/chef_model.fbx'), async (fbx) => {
   clips = await loadAndPrepChefClips(model, resolvePublicUrl('/assets/chef'));
 
   mixer = new THREE.AnimationMixer(clonedModel);
-  
+
   Object.keys(clips).forEach(key => {
     const clip = clips[key];
     if (!clip) return;

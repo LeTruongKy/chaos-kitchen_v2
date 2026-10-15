@@ -2,16 +2,16 @@
 export const QUAT_MODEL_FILE = '/assets/quat/chef_hat.glb';
 
 export const QUAT_CLIP_NAMES = {
-  idle:       'CharacterArmature|Idle',
-  walk:       'CharacterArmature|Walk',
-  run:        'CharacterArmature|Run',
+  idle: 'CharacterArmature|Idle',
+  walk: 'CharacterArmature|Walk',
+  run: 'CharacterArmature|Run',
   carry_walk: 'CharacterArmature|Walk_Carry',
-  carry_run:  'CharacterArmature|Run_Carry',
-  sit:        'CharacterArmature|SitDown',
-  pickup:     'CharacterArmature|PickUp',
-  victory:    'CharacterArmature|Victory',
-  death:      'CharacterArmature|Death',
-  punch:      'CharacterArmature|Punch',
+  carry_run: 'CharacterArmature|Run_Carry',
+  sit: 'CharacterArmature|SitDown',
+  pickup: 'CharacterArmature|PickUp',
+  victory: 'CharacterArmature|Victory',
+  death: 'CharacterArmature|Death',
+  punch: 'CharacterArmature|Punch',
 } as const;
 
 export type QuatClipKey = keyof typeof QUAT_CLIP_NAMES;

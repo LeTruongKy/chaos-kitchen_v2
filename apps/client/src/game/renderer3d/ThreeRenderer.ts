@@ -346,7 +346,7 @@ export class ThreeRenderer implements IGameRenderer {
                 { dx: -1, dy: 0, rot: Math.PI / 2 },
                 { dx: 1, dy: 0, rot: Math.PI / 2 }
               ];
-              for (const {dx, dy, rot} of dirs) {
+              for (const { dx, dy, rot } of dirs) {
                 const nx = x + dx;
                 const ny = y + dy;
                 if (nx >= 0 && nx < level.width && ny >= 0 && ny < level.height) {
@@ -528,7 +528,7 @@ export class ThreeRenderer implements IGameRenderer {
           }
           chef.id = p.id;
           chef.modelUrl = modelUrl;
-          
+
           const targetChef = chef;
           loadQuatModel(modelUrl).then(result => {
             if (targetChef && targetChef.modelUrl === modelUrl) {
@@ -554,7 +554,7 @@ export class ThreeRenderer implements IGameRenderer {
               if (targetChef && targetChef.modelUrl === modelUrl) {
                 targetChef.loadQuat(result);
               }
-            }).catch(() => {});
+            }).catch(() => { });
           }
         }
 
@@ -581,7 +581,7 @@ export class ThreeRenderer implements IGameRenderer {
 
         // Manage held item (use getItemVisualKey to ignore continuous cooking progress)
         let actualHeld = p.held || (chef.isMe && (window as any).debugHeldItem ? (window as any).debugHeldItem : null);
-        
+
         if (actualHeld) {
           const prevHeld = chef.heldItemData;
           if (!prevHeld || getItemVisualKey(prevHeld) !== getItemVisualKey(actualHeld)) {
@@ -919,7 +919,7 @@ export class ThreeRenderer implements IGameRenderer {
       }
 
       this.camera.lookAt(this.baseCameraLook);
-      
+
 
     }
 

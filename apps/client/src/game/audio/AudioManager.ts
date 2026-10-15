@@ -167,7 +167,7 @@ export class AudioManager {
   private getOrCreateContext(): AudioContext | null {
     if (this.ctx) {
       if (this.ctx.state === 'suspended') {
-        this.ctx.resume().catch(() => {});
+        this.ctx.resume().catch(() => { });
       }
       return this.ctx;
     }
@@ -177,7 +177,7 @@ export class AudioManager {
     try {
       this.ctx = new AudioCtx();
       if (this.ctx.state === 'suspended') {
-        this.ctx.resume().catch(() => {});
+        this.ctx.resume().catch(() => { });
       }
       return this.ctx;
     } catch {
@@ -245,7 +245,7 @@ export class AudioManager {
         .then((decoded) => {
           this.bufferCache.set(relPath, decoded);
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }
 
@@ -381,7 +381,7 @@ export class AudioManager {
       audioEl.currentTime = 0;
       const playPromise = audioEl.play();
       if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(() => {});
+        playPromise.catch(() => { });
       }
       return true;
     } catch {

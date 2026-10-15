@@ -14,15 +14,15 @@ export interface AssetDef {
 
 export const AssetManifest: Record<string, AssetDef> = {
   // Characters
-  chef: { 
-    file: '/assets/chef/chef_model.fbx', 
-    kind: 'character', 
-    targetSize: { height: 2.2 }, 
-    pivot: 'bottom', 
-    tintable: false, 
+  chef: {
+    file: '/assets/chef/chef_model.fbx',
+    kind: 'character',
+    targetSize: { height: 2.2 },
+    pivot: 'bottom',
+    tintable: false,
     sizeInTiles: true
   },
-  
+
   // Ingredients (Raw)
   tomato: { file: 'gltf/food_ingredient_tomato.gltf', kind: 'item', targetSize: { width: 0.48 }, pivot: 'bottom', sizeInTiles: true },
   lettuce: { file: 'gltf/food_ingredient_lettuce.gltf', kind: 'item', targetSize: { width: 0.50 }, pivot: 'bottom', sizeInTiles: true },
@@ -35,9 +35,9 @@ export const AssetManifest: Record<string, AssetDef> = {
   carrot: { file: 'gltf/food_ingredient_carrot.gltf', kind: 'item', targetSize: { width: 0.50 }, pivot: 'bottom', sizeInTiles: true },
   onion: { file: 'gltf/food_ingredient_onion.gltf', kind: 'item', targetSize: { width: 0.48 }, pivot: 'bottom', sizeInTiles: true },
   mushroom: { file: 'kenney/mushroom.glb', kind: 'item', targetSize: { width: 0.42, height: 0.40, depth: 0.42 }, pivot: 'bottom', sizeInTiles: true },
-  
+
   dough: { file: 'kenney/bread.glb', kind: 'item', targetSize: { width: 0.54 }, pivot: 'bottom', sizeInTiles: true },
-  
+
   // Ingredients (Chopped/Sliced)
   dough_chopped: { file: 'kenney/bread.glb', kind: 'item', targetSize: { width: 0.54 }, pivot: 'bottom', sizeInTiles: true },
   tomato_sliced: { file: 'gltf/food_ingredient_tomato_slice.gltf', kind: 'item', targetSize: { width: 0.48 }, pivot: 'bottom', sizeInTiles: true },
@@ -48,11 +48,11 @@ export const AssetManifest: Record<string, AssetDef> = {
   carrot_sliced: { file: 'gltf/food_ingredient_carrot_chopped.gltf', kind: 'item', targetSize: { width: 0.50 }, pivot: 'bottom', sizeInTiles: true },
   onion_sliced: { file: 'gltf/food_ingredient_onion_chopped.gltf', kind: 'item', targetSize: { width: 0.48 }, pivot: 'bottom', sizeInTiles: true },
   mushroom_sliced: { file: 'kenney/mushroom-half.glb', kind: 'item', targetSize: { width: 0.38, height: 0.34, depth: 0.38 }, pivot: 'bottom', sizeInTiles: true },
-  
+
   // Ingredients (Cooked)
   meat_cooked: { file: 'gltf/food_ingredient_burger_cooked.gltf', kind: 'item', targetSize: { width: 0.44 }, pivot: 'bottom', sizeInTiles: true },
   burger_cooked: { file: 'gltf/food_ingredient_burger_cooked.gltf', kind: 'item', targetSize: { width: 0.44 }, pivot: 'bottom', sizeInTiles: true },
-  
+
   // Recipes (Finished items)
   burger: { file: 'kenney/burger.glb', kind: 'item', targetSize: { width: 0.56 }, pivot: 'bottom', sizeInTiles: true },
   cheese_burger: { file: 'kenney/burger-cheese.glb', kind: 'item', targetSize: { width: 0.56 }, pivot: 'bottom', sizeInTiles: true },
@@ -61,7 +61,7 @@ export const AssetManifest: Record<string, AssetDef> = {
   salad: { file: 'kenney/salad.glb', kind: 'item', targetSize: { width: 0.58 }, pivot: 'bottom', sizeInTiles: true },
   stew: { file: 'gltf/stew_bowl.gltf', kind: 'item', targetSize: { width: 0.54 }, pivot: 'bottom', sizeInTiles: true },
   pizza: { file: 'kenney/pizza.glb', kind: 'item', targetSize: { width: 0.62 }, pivot: 'bottom', sizeInTiles: true },
-  
+
   // Equipment
   plate: { file: 'gltf/plate.gltf', kind: 'item', targetSize: { width: 0.66 }, pivot: 'bottom', sizeInTiles: true },
   plate_dirty: { file: 'gltf/plate_dirty.gltf', kind: 'item', targetSize: { width: 0.66 }, pivot: 'bottom', sizeInTiles: true },
@@ -72,7 +72,7 @@ export const AssetManifest: Record<string, AssetDef> = {
   ketchup: { file: 'gltf/ketchup.gltf', kind: 'item', targetSize: { height: 0.26 }, pivot: 'bottom', sizeInTiles: true },
   mustard: { file: 'gltf/mustard.gltf', kind: 'item', targetSize: { height: 0.26 }, pivot: 'bottom', sizeInTiles: true },
   menu_prop: { file: 'gltf/menu.gltf', kind: 'item', targetSize: { width: 0.26 }, pivot: 'bottom', sizeInTiles: true },
-  
+
   // Stations
   station_counter: { file: 'gltf/kitchencounter_straight_A.gltf', kind: 'station', targetSize: { width: 1, height: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },
   station_counter_b: { file: 'gltf/kitchencounter_straight_B.gltf', kind: 'station', targetSize: { width: 1, height: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },
@@ -85,7 +85,7 @@ export const AssetManifest: Record<string, AssetDef> = {
   table: { file: 'gltf/table_round_A_small.gltf', kind: 'station', targetSize: { width: 1.05, height: 0.54, depth: 1.05 }, pivot: 'bottom', sizeInTiles: true },
   table_decorated: { file: 'gltf/table_round_A_small_decorated.gltf', kind: 'station', targetSize: { width: 1.05, height: 0.62, depth: 1.05 }, pivot: 'bottom', sizeInTiles: true },
   chair: { file: 'gltf/chair_A.gltf', kind: 'station', targetSize: { width: 0.58, height: 0.52, depth: 0.58 }, pivot: 'bottom', sizeInTiles: true },
-  
+
   station_crate_tomato: { file: 'gltf/crate_tomatoes.gltf', kind: 'station', targetSize: { width: 1, height: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },
   station_crate_lettuce: { file: 'gltf/crate_lettuce.gltf', kind: 'station', targetSize: { width: 1, height: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },
   station_crate_meat: { file: 'gltf/crate_steak.gltf', kind: 'station', targetSize: { width: 1, height: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },
@@ -96,11 +96,11 @@ export const AssetManifest: Record<string, AssetDef> = {
   station_crate_mushroom: { file: 'gltf/crate_mushrooms.gltf', kind: 'station', targetSize: { width: 1, height: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },
   station_crate_carrot: { file: 'gltf/crate_carrots.gltf', kind: 'station', targetSize: { width: 1, height: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },
   station_crate_cheese: { file: 'gltf/crate_cheese.gltf', kind: 'station', targetSize: { width: 1, height: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },
-  
+
   station_chopping: { file: 'gltf/cuttingboard.gltf', kind: 'station', targetSize: { width: 0.84, depth: 0.72 }, pivot: 'bottom', sizeInTiles: true },
   station_dishrack: { file: 'gltf/dishrack.gltf', kind: 'station', targetSize: { width: 0.68, depth: 0.68 }, pivot: 'bottom', sizeInTiles: true },
   station_dishrack_plates: { file: 'gltf/dishrack_plates.gltf', kind: 'station', targetSize: { width: 0.68, depth: 0.68 }, pivot: 'bottom', sizeInTiles: true },
-  
+
   // Scenery & Restaurant Props
   floor: { file: 'gltf/floor_kitchen.gltf', kind: 'station', targetSize: { width: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },
   wall: { file: 'gltf/wall.gltf', kind: 'station', targetSize: { width: 1, height: 1, depth: 1 }, pivot: 'bottom', sizeInTiles: true },

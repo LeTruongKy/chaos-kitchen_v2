@@ -12,4 +12,6 @@ scratch
 __pycache__/
 *.pyc
 *.blend1
-
+.env.local
+*.log
+test_progress.txt

@@ -1,12 +1,14 @@
 services:
   - type: web
-    name: chaos-kitchen
-    runtime: docker
-    plan: free
+    name: chaos-kitchen-server
+    runtime: node
     region: singapore
-    healthCheckPath: /healthz
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @kitchen/server build
+    startCommand: pnpm --filter @kitchen/server start
+    healthCheckPath: /health
     envVars:
-      - key: NODE_ENV
-        value: production
+      - key: NODE_VERSION
+        value: "20"
       - key: CORS_ORIGIN
-        value: "*"
+        sync: false

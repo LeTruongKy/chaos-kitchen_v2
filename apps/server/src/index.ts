@@ -13,7 +13,11 @@ const app = express();
 app.use(express.json());
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', config.CORS_ORIGIN);
+  const requestOrigin = req.headers.origin;
+  if (requestOrigin && config.CORS_ORIGINS.includes(requestOrigin)) {
+    res.header('Access-Control-Allow-Origin', requestOrigin);
+    res.header('Vary', 'Origin');
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   if (req.method === 'OPTIONS') {
@@ -24,6 +28,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/healthz', (req, res) => res.status(200).send('ok'));
+app.get('/health', (_req, res) => res.json({ ok: true }));
 
 const server = createServer(app);
 

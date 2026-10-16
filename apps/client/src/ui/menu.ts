@@ -115,8 +115,21 @@ export function mountMenu(root: HTMLElement, state: AppState, client: NetClient)
     const modal = document.createElement('div');
     modal.className = 'modal';
 
+    const header = document.createElement('div');
+    header.className = 'modal-header';
+
     const heading = document.createElement('h2');
     heading.textContent = 'Hướng dẫn chơi';
+
+    const closeTopBtn = document.createElement('button');
+    closeTopBtn.className = 'modal-close-top';
+    closeTopBtn.setAttribute('aria-label', 'Đóng hướng dẫn');
+    closeTopBtn.textContent = '✕';
+
+    header.append(heading, closeTopBtn);
+
+    const body = document.createElement('div');
+    body.className = 'modal-body';
 
     const p1 = document.createElement('p');
     p1.style.textAlign = 'left';
@@ -169,9 +182,14 @@ export function mountMenu(root: HTMLElement, state: AppState, client: NetClient)
       }
     }
 
+    body.append(p1, p2, recipesList);
+
+    const footer = document.createElement('div');
+    footer.className = 'modal-footer';
+
     const closeBtn = document.createElement('button');
     closeBtn.className = 'modal-close';
-    closeBtn.textContent = 'X';
+    closeBtn.textContent = 'Đóng';
 
     const close = () => {
       overlay.remove();
@@ -183,6 +201,7 @@ export function mountMenu(root: HTMLElement, state: AppState, client: NetClient)
       }
     };
 
+    closeTopBtn.onclick = close;
     closeBtn.onclick = close;
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close();
@@ -190,7 +209,7 @@ export function mountMenu(root: HTMLElement, state: AppState, client: NetClient)
     window.addEventListener('keydown', onEsc);
 
     const playTutBtn = button('Chơi Màn Hướng Dẫn (Khuyên dùng)');
-    playTutBtn.style.marginTop = '1rem';
+    playTutBtn.className = 'btn-menu-primary modal-play-tut-btn';
     playTutBtn.onclick = () => {
       close();
       const nm = name.value.trim() || 'Tân binh';
@@ -205,7 +224,8 @@ export function mountMenu(root: HTMLElement, state: AppState, client: NetClient)
       });
     };
 
-    modal.append(heading, p1, p2, recipesList, playTutBtn, closeBtn);
+    footer.append(playTutBtn, closeBtn);
+    modal.append(header, body, footer);
     overlay.appendChild(modal);
     screen.appendChild(overlay);
   };

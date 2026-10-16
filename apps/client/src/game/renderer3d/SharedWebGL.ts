@@ -17,7 +17,7 @@ export function getSharedWebGLRenderer(): THREE.WebGLRenderer {
     try {
       sharedRenderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha: true,
+        alpha: false,
         powerPreference: 'high-performance',
         failIfMajorPerformanceCaveat: false,
       });

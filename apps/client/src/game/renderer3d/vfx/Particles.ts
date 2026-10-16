@@ -35,12 +35,14 @@ function createSoftParticleTexture(): THREE.CanvasTexture | null {
 
 export class ParticleSystem {
   public group = new THREE.Group();
-  private maxParticles = 400;
+  private maxParticles = 200;
   private particles: Particle[] = [];
   
   private mesh: THREE.InstancedMesh;
   private dummy = new THREE.Object3D();
   private tempColor = new THREE.Color();
+  private fireTargetColor = new THREE.Color(0xd92600);
+  private tempJitter = new THREE.Vector3();
   
   constructor() {
     for (let i = 0; i < this.maxParticles; i++) {
@@ -69,18 +71,24 @@ export class ParticleSystem {
     
     this.mesh = new THREE.InstancedMesh(geo, mat, this.maxParticles);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.mesh.frustumCulled = false;
     
     // Initialize color buffer so setColorAt works
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(this.maxParticles * 3), 3);
     this.mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
     
-    // Move all particles out of view initially
+    // Move all particles out of view initially and hide mesh until emitted
     this.dummy.position.set(0, -1000, 0);
+    this.dummy.scale.set(0, 0, 0);
     this.dummy.updateMatrix();
+    const white = new THREE.Color(0xffffff);
     for (let i = 0; i < this.maxParticles; i++) {
       this.mesh.setMatrixAt(i, this.dummy.matrix);
-      this.mesh.setColorAt(i, new THREE.Color(0xffffff));
+      this.mesh.setColorAt(i, white);
     }
+    // Keep mesh visible with full count so shader compiles upfront (inactive particles at y=-1000, scale=0 are invisible)
+    this.mesh.count = this.maxParticles;
+    this.mesh.visible = true;
     
     this.group.add(this.mesh);
   }
@@ -117,9 +125,8 @@ export class ParticleSystem {
       } else if (type === 'foam') { // For extinguisher
         p.maxAge = 0.45 + Math.random() * 0.25;
         if (dir) {
-          p.vel.copy(dir).multiplyScalar(135).add(
-            new THREE.Vector3((Math.random() - 0.5) * 45, (Math.random() - 0.5) * 28, (Math.random() - 0.5) * 45)
-          );
+          this.tempJitter.set((Math.random() - 0.5) * 45, (Math.random() - 0.5) * 28, (Math.random() - 0.5) * 45);
+          p.vel.copy(dir).multiplyScalar(135).add(this.tempJitter);
         } else {
           p.vel.set((Math.random() - 0.5) * 50, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 50);
         }
@@ -154,11 +161,16 @@ export class ParticleSystem {
   }
   
   private getFreeParticle(): Particle | null {
-    return this.particles.find(p => !p.active) || null;
+    for (let i = 0; i < this.maxParticles; i++) {
+      if (!this.particles[i]!.active) return this.particles[i]!;
+    }
+    return null;
   }
   
   update(dt: number, cameraRotation: THREE.Euler) {
     let instanceCount = 0;
+    let maxActiveIndex = -1;
+    let anyExpired = false;
     
     for (let i = 0; i < this.maxParticles; i++) {
       const p = this.particles[i];
@@ -167,8 +179,10 @@ export class ParticleSystem {
       p.age += dt;
       if (p.age >= p.maxAge) {
         p.active = false;
-        // Move it out of view
+        anyExpired = true;
+        // Move it out of view with 0 scale
         this.dummy.position.set(0, -1000, 0);
+        this.dummy.scale.set(0, 0, 0);
         this.dummy.updateMatrix();
         this.mesh.setMatrixAt(i, this.dummy.matrix);
         continue;
@@ -185,32 +199,42 @@ export class ParticleSystem {
       const life = p.age / p.maxAge;
       let s = p.size;
       if (p.type === 'smoke' || p.type === 'steam') {
-        s *= (0.75 + life * 0.95) * (1 - Math.pow(life, 3) * 0.5); // puff out then gently dissipate
+        s *= (0.75 + life * 0.95) * (1 - life * life * life * 0.5);
       } else if (p.type === 'fire') {
-        s *= (1.05 - life * 0.85); // taper off as flame rises
+        s *= (1.05 - life * 0.85);
       } else if (p.type === 'foam' || p.type === 'dust') {
         s *= (0.85 + life * 0.7) * (1 - life * 0.55);
       } else if (p.type === 'bubble') {
-        s *= (0.7 + life * 0.65) * (1 - Math.pow(life, 4));
+        const l2 = life * life;
+        s *= (0.7 + life * 0.65) * (1 - l2 * l2);
       }
       this.dummy.scale.set(s, s, s);
       
       this.dummy.updateMatrix();
       this.mesh.setMatrixAt(i, this.dummy.matrix);
       if (p.type === 'fire') {
-        // Transition fire spark color towards deeper orange-red as it rises
-        this.tempColor.copy(p.color).lerp(new THREE.Color(0xd92600), life * 0.65);
+        this.tempColor.copy(p.color).lerp(this.fireTargetColor, life * 0.65);
         this.mesh.setColorAt(i, this.tempColor);
       } else {
         this.mesh.setColorAt(i, p.color);
       }
       
       instanceCount++;
+      maxActiveIndex = i;
     }
     
-    if (instanceCount > 0) {
-      this.mesh.instanceMatrix.needsUpdate = true;
-      if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    if (instanceCount === 0) {
+      // Keep mesh visible with all instances at y=-1000, scale=0 to avoid shader recompilation stutter
+      this.mesh.count = this.maxParticles;
+      if (anyExpired) {
+        this.mesh.instanceMatrix.needsUpdate = true;
+      }
+      return;
     }
+
+    this.mesh.visible = true;
+    this.mesh.count = maxActiveIndex + 1;
+    this.mesh.instanceMatrix.needsUpdate = true;
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
   }
 }

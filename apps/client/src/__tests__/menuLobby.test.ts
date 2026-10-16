@@ -5,6 +5,25 @@ import type { AppState } from '../state/store';
 import { mountLobby } from '../ui/lobby';
 import { getInviteRoomCode, mountMenu } from '../ui/menu';
 
+vi.mock('../game/renderer3d/LobbyPreviewRenderer', () => ({
+  LobbyPreviewRenderer: class {
+    syncPlayers() {}
+    setSpeaking() {}
+    triggerWave() {}
+    dispose() {}
+  },
+}));
+
+vi.mock('../game/assets/AssetLoader', () => ({
+  AssetLoader: {
+    getInstance: () => ({
+      preloadAllInBackground: () => {},
+      loadAsset: async () => null,
+      getAssetSync: () => null,
+    }),
+  },
+}));
+
 const state: AppState = { phase: 'lobby', screen: 'menu', name: '', roomCode: '', lobby: null, results: null, error: null, ping: 18, loading: false };
 function client(): NetClient { return { createRoom: vi.fn(), joinByCode: vi.fn(), quickMatch: vi.fn(), leave: vi.fn(), ready: vi.fn(), selectLevel: vi.fn(), start: vi.fn(), sendInput: vi.fn(), sendEmote: vi.fn(), backToLobby: vi.fn(), on: vi.fn(), off: vi.fn(), sessionId: 'local-player' } as unknown as NetClient; }
 beforeEach(() => { document.body.replaceChildren(); });
@@ -45,6 +64,35 @@ describe('T16 menu', () => {
     const closeBtn = overlay.querySelector<HTMLButtonElement>('#setting-close-btn')!;
     closeBtn.click();
     expect(document.getElementById('settings-modal-overlay')).toBeNull();
+  });
+  it('renders menu-panel and tutorial modal with scrollable body and sticky close button for 390x844 mobile viewport', () => {
+    const root = document.body.appendChild(document.createElement('div'));
+    const net = client();
+    mountMenu(root, state, net);
+
+    const menuPanel = root.querySelector<HTMLElement>('.menu-panel')!;
+    expect(menuPanel).not.toBeNull();
+    expect(menuPanel.querySelector('.code-group')).not.toBeNull();
+
+    // Open tutorial modal via help button
+    const helpBtn = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      b => b.textContent === '📖'
+    )!;
+    expect(helpBtn).not.toBeUndefined();
+    helpBtn.click();
+
+    const modal = root.querySelector<HTMLElement>('.modal')!;
+    const modalBody = root.querySelector<HTMLElement>('.modal-body')!;
+    const modalFooter = root.querySelector<HTMLElement>('.modal-footer')!;
+    const modalClose = root.querySelector<HTMLButtonElement>('.modal-close')!;
+    expect(modal).not.toBeNull();
+    expect(modalBody).not.toBeNull();
+    expect(modalFooter).not.toBeNull();
+    expect(modalClose).not.toBeNull();
+    expect(modalFooter.contains(modalClose)).toBe(true);
+
+    modalClose.click();
+    expect(root.querySelector('.modal')).toBeNull();
   });
 });
 

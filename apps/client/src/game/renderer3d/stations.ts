@@ -262,11 +262,11 @@ function renderStatusBadgeCanvas(text: string, bg: string, borderColor: string):
 export const COUNTER_SURFACE_Y = 40.0;
 export const TABLE_SURFACE_Y = 35.8;
 
-// Shared Ambient Occlusion (AO) Contact Shadow Skirt geometry & material under every station
-const stationAoSkirtGeo = new THREE.PlaneGeometry(TILE_PX * 1.08, TILE_PX * 1.08);
+// Shared Ambient Occlusion (AO) Contact Shadow Skirt geometry & material (batched via InstancedMesh in ThreeRenderer)
+export const stationAoSkirtGeo = new THREE.PlaneGeometry(TILE_PX * 1.08, TILE_PX * 1.08);
 stationAoSkirtGeo.rotateX(-Math.PI / 2);
 stationAoSkirtGeo.userData.isSharedAsset = true;
-const stationAoSkirtMat = new THREE.MeshBasicMaterial({
+export const stationAoSkirtMat = new THREE.MeshBasicMaterial({
   color: 0x1a0f08,
   transparent: true,
   opacity: 0.28,
@@ -275,16 +275,11 @@ const stationAoSkirtMat = new THREE.MeshBasicMaterial({
 stationAoSkirtMat.userData.isSharedAsset = true;
 const sharedBaseGeo = new RoundedBoxGeometry(TILE_PX * 0.98, COUNTER_SURFACE_Y, TILE_PX * 0.98, 2, 0.05);
 sharedBaseGeo.userData.isSharedAsset = true;
+const tempStationParticlePos = new THREE.Vector3();
 
 export function createStationModel(station: StationInit, level: ParsedLevel): THREE.Group {
   const group = new THREE.Group();
   group.name = 'station_' + station.type;
-
-  // Ambient Occlusion Contact Shadow Skirt at Y = 0.15 so every counter/station pops off the floor!
-  const aoSkirt = new THREE.Mesh(stationAoSkirtGeo, stationAoSkirtMat);
-  aoSkirt.position.y = 0.15;
-  aoSkirt.renderOrder = 1;
-  group.add(aoSkirt);
 
   // Base counter block
   const baseGeo = sharedBaseGeo;
@@ -349,7 +344,7 @@ export function createStationModel(station: StationInit, level: ParsedLevel): TH
           chairLeft.scene.rotation.y = Math.PI / 2;
           group.add(chairLeft.scene);
         }
-        
+
         const chairRight = AssetLoader.getInstance().getAssetSync('chair');
         if (chairRight) {
           chairRight.scene.position.set(TILE_PX * 0.54, 0, 0);
@@ -357,20 +352,18 @@ export function createStationModel(station: StationInit, level: ParsedLevel): TH
           group.add(chairRight.scene);
         }
       }
-      {
-        const tableY = group.userData.surfaceY || TABLE_SURFACE_Y;
-        const ketchup = AssetLoader.getInstance().getAssetSync('ketchup');
-        if (ketchup) {
-          ketchup.scene.position.set(TILE_PX * 0.25, tableY, -TILE_PX * 0.20);
-          ketchup.scene.scale.multiplyScalar(0.76);
-          group.add(ketchup.scene);
-        }
-        const mustard = AssetLoader.getInstance().getAssetSync('mustard');
-        if (mustard) {
-          mustard.scene.position.set(TILE_PX * 0.14, tableY, -TILE_PX * 0.26);
-          mustard.scene.scale.multiplyScalar(0.76);
-          group.add(mustard.scene);
-        }
+      const tableY = group.userData.surfaceY || TABLE_SURFACE_Y;
+      const ketchup = AssetLoader.getInstance().getAssetSync('ketchup');
+      if (ketchup) {
+        ketchup.scene.position.set(TILE_PX * 0.25, tableY, -TILE_PX * 0.20);
+        ketchup.scene.scale.multiplyScalar(0.76);
+        group.add(ketchup.scene);
+      }
+      const mustard = AssetLoader.getInstance().getAssetSync('mustard');
+      if (mustard) {
+        mustard.scene.position.set(TILE_PX * 0.14, tableY, -TILE_PX * 0.26);
+        mustard.scene.scale.multiplyScalar(0.76);
+        group.add(mustard.scene);
       }
       break;
     case 'cutting':
@@ -606,12 +599,12 @@ export function updateStationModel(group: THREE.Group, state: any, time: number,
   
   if (particleSystem) {
     const surfY = group.userData.surfaceY || COUNTER_SURFACE_Y;
-    const pos = new THREE.Vector3(
+    const pos = tempStationParticlePos.set(
       state.x * TILE_PX + TILE_PX / 2,
       surfY + 12,
       state.y * TILE_PX + TILE_PX / 2
     );
-    
+
     if (state.onFire) {
       // Emit rising flame sparks and dark smoke puffs
       if (Math.random() < 0.35) {

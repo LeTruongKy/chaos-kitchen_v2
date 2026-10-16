@@ -164,8 +164,13 @@ document.body.appendChild(fpsBadge);
 
 let fpsFrames = 0;
 let lastFpsTime = performance.now();
+let fpsRafId = 0;
 function fpsTick() {
-  requestAnimationFrame(fpsTick);
+  if (!getSettings().showFps) {
+    fpsRafId = 0;
+    return;
+  }
+  fpsRafId = requestAnimationFrame(fpsTick);
   fpsFrames++;
   const now = performance.now();
   if (now - lastFpsTime >= 500) {
@@ -175,11 +180,22 @@ function fpsTick() {
     lastFpsTime = now;
   }
 }
-fpsTick();
 
-fpsBadge.style.display = getSettings().showFps ? 'block' : 'none';
+function syncFpsBadge(show: boolean) {
+  fpsBadge.style.display = show ? 'block' : 'none';
+  if (show && !fpsRafId) {
+    fpsFrames = 0;
+    lastFpsTime = performance.now();
+    fpsRafId = requestAnimationFrame(fpsTick);
+  } else if (!show && fpsRafId) {
+    cancelAnimationFrame(fpsRafId);
+    fpsRafId = 0;
+  }
+}
+
+syncFpsBadge(getSettings().showFps);
 subscribeSettings((settings) => {
-  fpsBadge.style.display = settings.showFps ? 'block' : 'none';
+  syncFpsBadge(settings.showFps);
 });
 
 mountRouter(appStore, (state) => {

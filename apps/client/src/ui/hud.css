@@ -10,7 +10,6 @@
   z-index: 10;
   overflow: hidden;
   font-family: 'Segoe UI', 'Nunito', system-ui, -apple-system, sans-serif;
-  box-shadow: inset 0 0 85px rgba(18, 9, 4, 0.45);
 }
 
 .hud-top-bar {
@@ -46,7 +45,6 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
-  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35));
 }
 
 .hud-score-container {
@@ -519,8 +517,6 @@
 
 .hud-sprint-icon {
   font-size: 15px;
-  filter: drop-shadow(0 0 4px #fbbf24);
-  animation: pulse-icon 1.5s infinite alternate;
 }
 
 .hud-sprint-track {
@@ -799,7 +795,8 @@
 
 .rsc-recipe-modal {
   width: min(940px, 95vw);
-  max-height: 88vh;
+  max-height: 90vh;
+  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   background: #fffbeb;
@@ -812,6 +809,7 @@
 
 .rsc-recipe-modal-header {
   position: relative;
+  flex-shrink: 0;
   background: linear-gradient(180deg, #ffde59 0%, #f59e0b 100%);
   border-bottom: 4px solid #181818;
   padding: 14px 24px;
@@ -864,11 +862,15 @@
   padding: 8px 20px;
   font-size: 14px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .rsc-recipe-cards-grid {
   padding: 18px 20px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
   gap: 16px;
@@ -1025,6 +1027,9 @@
 }
 
 .rsc-recipe-modal-footer {
+  position: sticky;
+  bottom: 0;
+  flex-shrink: 0;
   background: #f1f5f9;
   border-top: 3px solid #181818;
   padding: 12px 20px;
@@ -1068,103 +1073,186 @@
   100% { transform: translateX(calc(-50% + 2px)); }
 }
 
+/* Touch & Action Control Buttons Visibility (BƯỚC 2) */
+.touch-control-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Always hide Switch Chef button on both PC and Mobile */
+.touch-btn-switch {
+  display: none !important;
+}
+
 /* ==========================================================================
-   Mobile Landscape & Compact Screen HUD Adjustments
+   Mobile & Touch Compact HUD Adjustments (BƯỚC 2 & BƯỚC 3)
    ========================================================================== */
-@media (max-height: 520px), (max-width: 920px) {
+@media (max-width: 768px), (pointer: coarse) {
+  .touch-btn-dash,
+  .touch-tap-banner {
+    display: none !important;
+  }
+
   .hud-top-bar {
-    padding: 6px 10px;
+    height: 34px;
+    max-height: 36px;
+    padding: 2px 8px;
+    align-items: center;
+    box-sizing: border-box;
   }
 
   .hud-rsc-status-card {
-    gap: 8px;
-    padding: 3px 10px;
-    border-radius: 12px;
-    border-width: 2.5px;
-    box-shadow: 0 3px 0 #1a1a1a;
+    height: 28px;
+    max-height: 28px;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border-width: 2px;
+    box-shadow: 0 2px 0 #1a1a1a;
+    box-sizing: border-box;
   }
 
   .hud-rsc-stars {
-    font-size: 14px;
+    font-size: 11px;
+    margin-right: 0;
   }
 
-  .hud-score-container {
-    font-size: 17px;
+  .hud-score-coin-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .hud-score-container,
+  .hud-score {
+    font-size: 14px;
+    gap: 3px;
+  }
+
+  .hud-streak {
+    font-size: 12px;
+    margin-left: 3px;
   }
 
   .hud-timer-wrap {
-    padding: 2px 7px;
+    background: transparent;
+    border: none;
+    padding: 0 2px;
+    gap: 2px;
+    border-radius: 0;
+  }
+
+  .hud-timer-icon {
+    font-size: 13px;
   }
 
   .hud-time {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .hud-right-box {
-    gap: 6px;
-    padding: 4px 8px;
-    border-width: 2.5px;
-    box-shadow: 0 3px 0 #1a1a1a;
+    height: 28px;
+    max-height: 28px;
+    gap: 4px;
+    padding: 0 4px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
   }
 
-  .hud-action-pill-btn {
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 9px;
-    border-width: 2px;
-    box-shadow: 0 2px 0 #181818;
+  .hud-ping,
+  .hud-btn-label {
+    display: none !important;
   }
 
+  .hud-action-pill-btn,
   .hud-audio-btn {
-    width: 25px;
-    height: 25px;
-    font-size: 12px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    max-width: 28px;
+    min-height: 28px;
+    max-height: 28px;
+    padding: 0;
+    border-radius: 8px;
+    border: 2px solid #181818;
+    box-shadow: 0 2px 0 #181818;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
   }
 
-  .hud-ping {
-    font-size: 11px;
-  }
-
+  /* Sprint Stamina Bar: 28px height, bottom center */
   .hud-sprint-container {
+    height: 28px;
+    max-height: 28px;
     bottom: 42px;
-    padding: 3px 9px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    gap: 5px;
+    box-sizing: border-box;
+  }
+
+  .hud-sprint-icon {
+    font-size: 12px;
+    line-height: 1;
   }
 
   .hud-sprint-track {
-    width: 85px;
-    height: 7px;
+    width: 72px;
+    height: 6px;
   }
 
+  /* Bottom Order / Recipe Bar: max-height 56px, compact tickets */
   .hud-recipe-bar {
-    padding: 3px 12px 4px 12px;
-    gap: 8px;
-    border-radius: 14px 14px 0 0;
+    height: 36px;
+    max-height: 56px;
+    padding: 3px 10px;
+    gap: 6px;
+    bottom: 0;
+    border-radius: 12px 12px 0 0;
+    border-width: 2px;
+    box-sizing: border-box;
   }
 
   .hud-recipe-pill {
-    padding: 2px 8px 2px 3px;
-    gap: 5px;
-    font-size: 11px;
-  }
-
-  .hud-recipe-dome {
-    width: 26px;
     height: 26px;
-    margin-top: -3px;
+    max-height: 28px;
+    padding: 2px 8px;
+    gap: 4px;
+    font-size: 11px;
+    box-sizing: border-box;
   }
 
-  .hud-recipe-pill-img {
-    width: 21px;
-    height: 21px;
-  }
-
+  .hud-recipe-dome,
   .hud-recipe-mini-step-icon {
-    width: 17px;
-    height: 17px;
+    display: none !important;
   }
 
   .hud-recipe-pill-steps {
+    margin-left: 0;
     font-size: 11px;
+  }
+
+  .hud-orders,
+  .hud-orders-top {
+    top: auto;
+    bottom: 0;
+    max-height: 56px;
+    gap: 6px;
+  }
+
+  .hud-order:not(.bubble) {
+    max-height: 44px;
+    padding: 3px 6px;
+    box-sizing: border-box;
+  }
+
+  .hud-order:not(.bubble) .hud-order-body-row {
+    display: none !important;
   }
 
   .hud-order.bubble {
@@ -1188,7 +1276,7 @@
   }
 
   .rsc-recipe-modal {
-    max-height: 94vh;
+    max-height: 90dvh;
     border-radius: 16px;
   }
 
@@ -1224,4 +1312,9 @@
     font-size: 13px;
     padding: 6px 16px;
   }
+
+  .hud-container {
+    box-shadow: none;
+  }
 }
+

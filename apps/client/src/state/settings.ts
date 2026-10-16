@@ -33,7 +33,9 @@ function detectDefaultQuality(): Quality {
   if (typeof navigator === 'undefined' || typeof window === 'undefined') {
     return 'medium'; // Fallback for tests
   }
-  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  const isMobile =
+    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches);
   if (isMobile) return 'low';
   
   const hardwareConcurrency = navigator.hardwareConcurrency || 4;
@@ -115,22 +117,33 @@ export function loadSettingsFromStorage(): void {
   currentSettings = validated;
 }
 
+let cachedSearchStr: string | null = null;
+let cachedSearchOverrides: { r?: RendererType; q?: Quality; fps?: boolean } = {};
+
 export function getSettings(): Settings {
-  // Always apply URL overrides on top of current memory state
+  // Always apply URL overrides on top of current memory state (with cached URLSearchParams)
   const overridden = { ...currentSettings };
   
   if (typeof window !== 'undefined') {
     try {
-      const params = new URLSearchParams(window.location.search);
-      const r = params.get('r');
-      if (r === '2d' || r === '3d') overridden.renderer = r;
-      
-      const q = params.get('q');
-      if (q === 'low' || q === 'medium' || q === 'high') overridden.quality = q;
-      
-      const fps = params.get('fps');
-      if (fps === '1') overridden.showFps = true;
-      if (fps === '0') overridden.showFps = false;
+      const search = window.location.search;
+      if (search !== cachedSearchStr) {
+        cachedSearchStr = search;
+        cachedSearchOverrides = {};
+        if (search) {
+          const params = new URLSearchParams(search);
+          const r = params.get('r');
+          if (r === '2d' || r === '3d') cachedSearchOverrides.r = r;
+          const q = params.get('q');
+          if (q === 'low' || q === 'medium' || q === 'high') cachedSearchOverrides.q = q;
+          const fps = params.get('fps');
+          if (fps === '1') cachedSearchOverrides.fps = true;
+          else if (fps === '0') cachedSearchOverrides.fps = false;
+        }
+      }
+      if (cachedSearchOverrides.r) overridden.renderer = cachedSearchOverrides.r;
+      if (cachedSearchOverrides.q) overridden.quality = cachedSearchOverrides.q;
+      if (cachedSearchOverrides.fps !== undefined) overridden.showFps = cachedSearchOverrides.fps;
     } catch (e) {
       // ignore
     }

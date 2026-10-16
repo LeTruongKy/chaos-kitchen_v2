@@ -48,7 +48,7 @@ export class MenuRenderer {
     // Warm Overcooked / Ready Set Cook Diorama Lighting
     this.dirLight = new THREE.DirectionalLight(0xffe6c2, 1.55);
     this.dirLight.position.set(90, 160, 110);
-    this.dirLight.castShadow = true;
+    this.dirLight.castShadow = false;
     this.scene.add(this.dirLight);
 
     const hemi = new THREE.HemisphereLight(0xfff6e5, 0xc89d7c, 0.85);
@@ -83,16 +83,11 @@ export class MenuRenderer {
     if (!this.renderer) return;
     if (q === 'low') {
       this.renderer.setPixelRatio(1);
-      this.renderer.shadowMap.enabled = false;
     } else {
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      this.renderer.shadowMap.enabled = true;
-      if (this.dirLight) {
-        const sz = q === 'medium' ? 1024 : 2048;
-        this.dirLight.shadow.mapSize.width = sz;
-        this.dirLight.shadow.mapSize.height = sz;
-      }
     }
+    // Keep shadow maps disabled to avoid GPU overhead on shared renderer
+    this.renderer.shadowMap.enabled = false;
   }
 
   private onResize() {
@@ -308,6 +303,12 @@ export class MenuRenderer {
   private animate() {
     if (this.disposed) return;
     this.animationId = requestAnimationFrame(this.animate);
+
+    // Skip rendering when tab is hidden to save GPU/CPU
+    if (document.hidden) {
+      this.lastTime = performance.now();
+      return;
+    }
 
     const now = performance.now();
     const dtSec = Math.min((now - this.lastTime) * 0.001, 0.1);

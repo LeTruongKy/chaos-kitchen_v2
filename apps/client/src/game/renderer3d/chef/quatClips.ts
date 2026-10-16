@@ -131,17 +131,55 @@ export interface QuatModelResult {
 }
 
 const cachedPromises = new Map<string, Promise<QuatModelResult>>();
+const cachedResults = new Map<string, QuatModelResult>();
 const gltfLoader = new GLTFLoader();
+
+export function isQuatModelResultValid(res: QuatModelResult | undefined | null): boolean {
+  if (!res || !res.model || !res.clips || res.clips.size === 0) return false;
+  let meshCount = 0;
+  let valid = true;
+  res.model.traverse((child: any) => {
+    if (!child || !child.isMesh) return;
+    meshCount++;
+    const geom = child.geometry as THREE.BufferGeometry | undefined;
+    if (!geom || !geom.attributes || !geom.attributes.position || geom.attributes.position.count === 0) {
+      valid = false;
+    }
+    if (!child.material) {
+      valid = false;
+    }
+  });
+  return meshCount > 0 && valid;
+}
 
 /**
  * Nạp nhân vật Chibi Overcooked (.glb) và chuẩn hóa kích thước/clip/màu sắc.
  * Tự động chuyển đổi mọi đường dẫn .fbx cũ sang .glb mới.
+ * Nếu bản cache đã bị dispose geometry/material, tự động nạp lại file.
  */
 export async function loadQuatModel(modelUrl: string = QUAT_MODEL_FILE): Promise<QuatModelResult> {
   const normalizedUrl = modelUrl.replace(/\.fbx(\?.*)?$/i, '.glb');
+  const cachedRes = cachedResults.get(normalizedUrl);
+  if (cachedRes) {
+    if (isQuatModelResultValid(cachedRes)) {
+      return cachedRes;
+    }
+    cachedResults.delete(normalizedUrl);
+    cachedPromises.delete(normalizedUrl);
+  }
+
   const existing = cachedPromises.get(normalizedUrl);
   if (existing) {
-    return existing;
+    try {
+      const res = await existing;
+      if (isQuatModelResultValid(res)) {
+        return res;
+      }
+    } catch {
+      // Fall through to reload
+    }
+    cachedResults.delete(normalizedUrl);
+    cachedPromises.delete(normalizedUrl);
   }
 
   const promise = (async () => {
@@ -197,7 +235,7 @@ export async function loadQuatModel(modelUrl: string = QUAT_MODEL_FILE): Promise
       clipsMap.set(key, clip);
     }
 
-    return {
+    const result: QuatModelResult = {
       group,
       model,
       clips: clipsMap,
@@ -207,6 +245,8 @@ export async function loadQuatModel(modelUrl: string = QUAT_MODEL_FILE): Promise
       scaleNode: scale_node,
       modelUrl: normalizedUrl,
     };
+    cachedResults.set(normalizedUrl, result);
+    return result;
   })();
 
   cachedPromises.set(normalizedUrl, promise);

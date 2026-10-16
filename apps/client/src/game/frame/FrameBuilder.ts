@@ -11,6 +11,7 @@ export class FrameBuilder {
   private currentLevel?: ParsedLevel;
   private localPlayerId?: string;
   private currentActiveId?: string;
+  private cachedLocalCosmetic = loadCosmetic();
 
   constructor() {
     this.snapshotBuffer = new SnapshotBuffer();
@@ -18,10 +19,12 @@ export class FrameBuilder {
 
   public setLevel(levelDef: LevelDef) {
     this.currentLevel = parseLevel(levelDef);
+    this.cachedLocalCosmetic = loadCosmetic();
   }
 
   public setLocalPlayerId(id: string) {
     this.localPlayerId = id;
+    this.cachedLocalCosmetic = loadCosmetic();
   }
 
   public onSnapshot(snap: Snapshot, recvTime: number) {
@@ -61,12 +64,77 @@ export class FrameBuilder {
 
   public buildFrame(): RenderFrame | null {
     const renderTime = globalThis.performance.now() - INTERP_DELAY_MS;
-    const { snapshot, players: interpPlayers } = this.snapshotBuffer.sample(renderTime);
+    let { snapshot, players: interpPlayers } = this.snapshotBuffer.sample(renderTime);
+
+    const storeState = appStore.get();
+    const lobby = storeState.lobby;
+    if (!snapshot && this.currentLevel && lobby && lobby.players.length > 0 && (storeState.phase === 'countdown' || storeState.phase === 'playing')) {
+      const spawns = this.currentLevel.spawns.length > 0 ? this.currentLevel.spawns : [{ x: 2, y: 2 }];
+      const rawIds = lobby.solo
+        ? lobby.players.flatMap(m => [`${m.id}_1`, `${m.id}_2`])
+        : lobby.players.map(m => m.id);
+      const fallbackPlayers = rawIds.map((pid, idx) => {
+        const sp = spawns[idx % spawns.length]!;
+        return {
+          id: pid,
+          x: sp.x + 0.5,
+          y: sp.y + 0.5,
+          vx: 0,
+          vy: 0,
+          fx: 0,
+          fy: 1,
+          held: null,
+          acting: false,
+          ackSeq: 0,
+          dashT: 0,
+          dashCd: 0,
+          sprintEnergy: 3.0,
+          sprintExhausted: false,
+        };
+      });
+      snapshot = {
+        tick: 0,
+        timeLeft: 180,
+        score: 0,
+        streak: 0,
+        players: fallbackPlayers as any,
+        stations: this.currentLevel.stations.map(s => ({
+          x: s.x,
+          y: s.y,
+          type: s.type,
+          kind: (s as any).kind,
+          item: null,
+          cleanCount: s.type === 'plate_dispenser' ? 4 : 0,
+          dirtyCount: 0,
+          progress: 0,
+          burnProgress: 0,
+          onFire: false,
+        })) as any,
+        orders: [],
+        customers: [],
+        projectiles: [],
+        activeChefId: lobby.solo && lobby.players[0] ? `${lobby.players[0].id}_1` : this.localPlayerId,
+      } as any;
+      interpPlayers = fallbackPlayers.map((p, idx) => ({
+        id: p.id,
+        x: p.x,
+        y: p.y,
+        fx: p.fx,
+        fy: p.fy,
+        held: null,
+        acting: false,
+        colorIndex: idx,
+      }));
+      if (!this.currentActiveId) {
+        this.currentActiveId = (snapshot as any).activeChefId || this.localPlayerId;
+      }
+    }
+
     if (!snapshot) return null;
 
     let targetTile = { tx: -1, ty: -1 };
-    const lobbyPlayers = appStore.get().lobby?.players || [];
-    const localSavedCosmetic = loadCosmetic();
+    const lobbyPlayers = lobby?.players || [];
+    const localSavedCosmetic = this.cachedLocalCosmetic;
 
     const framePlayers = interpPlayers.map((p, idx) => {
       const isLocal = p.id === this.currentActiveId;

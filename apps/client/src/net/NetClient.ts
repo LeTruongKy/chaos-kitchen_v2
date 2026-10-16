@@ -33,6 +33,7 @@ export class NetClient {
   private currentEndpoint: string;
   private room?: Room;
   public sessionId?: string;
+  public lastSnapshot: Snapshot | null = null;
   private reconnectInterval?: number;
   private pingInterval?: number;
   private listeners: { [K in keyof EmitterMap]?: EmitterMap[K][] } = {};
@@ -98,6 +99,7 @@ export class NetClient {
       };
       if (payload.phase === 'lobby') {
         updates.results = null;
+        this.lastSnapshot = null;
       }
       this.store.set(updates);
       this.emit('lobby', payload);
@@ -111,12 +113,14 @@ export class NetClient {
       };
       if (payload.phase === 'lobby') {
         updates.results = null;
+        this.lastSnapshot = null;
       }
       this.store.set(updates);
       this.emit('phase', payload);
     });
 
     room.onMessage('snapshot', (payload: Snapshot) => {
+      this.lastSnapshot = payload;
       this.emit('snapshot', payload);
     });
 

@@ -106,7 +106,7 @@ export function mountHud(root: HTMLElement, state: AppState, netClient: NetClien
   const recipeBookBtn = document.createElement('button');
   recipeBookBtn.className = 'hud-action-pill-btn hud-recipe-book-btn';
   recipeBookBtn.title = 'Xem hướng dẫn công thức món ăn (Phím H)';
-  recipeBookBtn.textContent = '📖 Công thức (H)';
+  recipeBookBtn.innerHTML = '<span class="hud-btn-icon">📖</span><span class="hud-btn-label"> Công thức (H)</span>';
   recipeBookBtn.onclick = () => {
     const levelId = appStore.get().lobby?.levelId || state.lobby?.levelId;
     showRecipeGuideModal(hudContainer, levelId, getLevelRecipeIds(levelId), false);
@@ -118,7 +118,9 @@ export function mountHud(root: HTMLElement, state: AppState, netClient: NetClien
   const updateMicBtn = () => {
     const active = voiceChat.isMicActive();
     const speaking = voiceChat.isLocalSpeaking();
-    micBtn.textContent = active ? (speaking ? '🔊 Đang nói...' : '🎤 Mic: BẬT') : '🔇 Mic: TẮT';
+    const icon = active ? (speaking ? '🔊' : '🎤') : '🔇';
+    const label = active ? (speaking ? ' Đang nói...' : ' Mic: BẬT') : ' Mic: TẮT';
+    micBtn.innerHTML = `<span class="hud-btn-icon">${icon}</span><span class="hud-btn-label">${label}</span>`;
     micBtn.classList.toggle('mic-active', active);
     micBtn.classList.toggle('mic-speaking', speaking);
   };
@@ -215,7 +217,7 @@ export function mountHud(root: HTMLElement, state: AppState, netClient: NetClien
   const exitBtn = document.createElement('button');
   exitBtn.className = 'hud-action-pill-btn hud-exit-btn';
   exitBtn.title = 'Tạm dừng / Đổi màn hoặc Thoát về Menu (Phím Esc)';
-  exitBtn.textContent = '🚪 Thoát (Esc)';
+  exitBtn.innerHTML = '<span class="hud-btn-icon">🚪</span><span class="hud-btn-label"> Thoát (Esc)</span>';
   exitBtn.onclick = () => {
     togglePauseModal();
   };
@@ -478,8 +480,9 @@ export function mountHud(root: HTMLElement, state: AppState, netClient: NetClien
       // Update patience bar & circular pie-chart timer
       const ratio = Math.max(0, Math.min(1, order.timeLeft / (order.patience || 1)));
       const pct = Math.round(ratio * 100);
-      const barFg = el.querySelector('.hud-order-bar-fg') as HTMLElement;
-      const pieEl = el.querySelector('.hud-order-pie') as HTMLElement;
+      const elAny = el as any;
+      const barFg: HTMLElement | null = elAny._barFg !== undefined ? elAny._barFg : (elAny._barFg = el.querySelector('.hud-order-bar-fg'));
+      const pieEl: HTMLElement | null = elAny._pieEl !== undefined ? elAny._pieEl : (elAny._pieEl = el.querySelector('.hud-order-pie'));
 
       let colorTier = 'red';
       let pieHex = '#ef4444';
@@ -491,16 +494,17 @@ export function mountHud(root: HTMLElement, state: AppState, netClient: NetClien
         pieHex = '#f59e0b';
       }
 
-      if (pieEl) {
-        pieEl.style.background = `conic-gradient(${pieHex} ${pct}%, #e2e8f0 ${pct}% 100%)`;
-        pieEl.className = `hud-order-pie ${colorTier}`;
-      }
-
-      if (barFg) {
-        const newWidth = `${pct}%`;
-        const newClass = `hud-order-bar-fg ${colorTier}`;
-        if (barFg.style.width !== newWidth) barFg.style.width = newWidth;
-        if (barFg.className !== newClass) barFg.className = newClass;
+      if (elAny._lastPct !== pct || elAny._lastColorTier !== colorTier) {
+        elAny._lastPct = pct;
+        elAny._lastColorTier = colorTier;
+        if (pieEl) {
+          pieEl.style.background = `conic-gradient(${pieHex} ${pct}%, #e2e8f0 ${pct}% 100%)`;
+          pieEl.className = `hud-order-pie ${colorTier}`;
+        }
+        if (barFg) {
+          barFg.style.width = `${pct}%`;
+          barFg.className = `hud-order-bar-fg ${colorTier}`;
+        }
       }
 
       if (ratio <= 0.2) {

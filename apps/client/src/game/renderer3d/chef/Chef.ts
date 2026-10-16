@@ -10,74 +10,79 @@ import { QuatModelResult, applyQuatPalette } from './quatClips';
 import { pickQuatClip } from './quatPick';
 import { voiceChat } from '../../../net/VoiceChat';
 
+let sharedYouBadgeMat: THREE.SpriteMaterial | null = null;
 function createYouBadge(): THREE.Sprite {
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 96;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = '900 58px "Impact", "Arial Black", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.lineJoin = 'round';
-    ctx.miterLimit = 2;
+  if (!sharedYouBadgeMat) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 96;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = '900 58px "Impact", "Arial Black", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.miterLimit = 2;
 
-    // Comic drop shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-    ctx.fillText('YOU', canvas.width / 2 + 4, canvas.height / 2 + 5);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.fillText('YOU', canvas.width / 2 + 4, canvas.height / 2 + 5);
 
-    // Thick black comic outline
-    ctx.lineWidth = 14;
-    ctx.strokeStyle = '#111111';
-    ctx.strokeText('YOU', canvas.width / 2, canvas.height / 2);
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = '#111111';
+      ctx.strokeText('YOU', canvas.width / 2, canvas.height / 2);
 
-    // Vibrant Ready Set Cook red-orange fill
-    const grad = ctx.createLinearGradient(0, 16, 0, 80);
-    grad.addColorStop(0, '#ff4b3e');
-    grad.addColorStop(1, '#e61919');
-    ctx.fillStyle = grad;
-    ctx.fillText('YOU', canvas.width / 2, canvas.height / 2);
+      const grad = ctx.createLinearGradient(0, 16, 0, 80);
+      grad.addColorStop(0, '#ff4b3e');
+      grad.addColorStop(1, '#e61919');
+      ctx.fillStyle = grad;
+      ctx.fillText('YOU', canvas.width / 2, canvas.height / 2);
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    sharedYouBadgeMat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+    sharedYouBadgeMat.userData.isSharedAsset = true;
   }
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-  const sprite = new THREE.Sprite(mat);
+  const sprite = new THREE.Sprite(sharedYouBadgeMat);
   sprite.scale.set(TILE_PX * 0.72, TILE_PX * 0.27, 1);
   sprite.position.set(0, TILE_PX * 1.66, 0);
   sprite.renderOrder = 950;
   return sprite;
 }
 
+let sharedSpeakingBadgeMat: THREE.SpriteMaterial | null = null;
 function createSpeakingBadge(): THREE.Sprite {
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 96;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#16a34a';
-    ctx.strokeStyle = '#111111';
-    ctx.lineWidth = 8;
-    ctx.beginPath();
-    if (typeof ctx.roundRect === 'function') {
-      ctx.roundRect(16, 12, 224, 72, 36);
-    } else {
-      ctx.rect(16, 12, 224, 72);
-    }
-    ctx.fill();
-    ctx.stroke();
+  if (!sharedSpeakingBadgeMat) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 96;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#16a34a';
+      ctx.strokeStyle = '#111111';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(16, 12, 224, 72, 36);
+      } else {
+        ctx.rect(16, 12, 224, 72);
+      }
+      ctx.fill();
+      ctx.stroke();
 
-    ctx.font = '900 38px sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🔊 MIC', canvas.width / 2, canvas.height / 2 + 2);
+      ctx.font = '900 38px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🔊 MIC', canvas.width / 2, canvas.height / 2 + 2);
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    sharedSpeakingBadgeMat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+    sharedSpeakingBadgeMat.userData.isSharedAsset = true;
   }
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-  const sprite = new THREE.Sprite(mat);
+  const sprite = new THREE.Sprite(sharedSpeakingBadgeMat);
   sprite.scale.set(TILE_PX * 0.78, TILE_PX * 0.29, 1);
   sprite.position.set(0, TILE_PX * 1.98, 0);
   sprite.renderOrder = 955;
@@ -85,25 +90,40 @@ function createSpeakingBadge(): THREE.Sprite {
   return sprite;
 }
 
+const sharedFootShadowGeo = new THREE.CircleGeometry(TILE_PX * 0.34, 20);
+sharedFootShadowGeo.rotateX(-Math.PI / 2);
+sharedFootShadowGeo.userData.isSharedAsset = true;
+const sharedFootShadowMat = new THREE.MeshBasicMaterial({
+  color: 0x120b07,
+  transparent: true,
+  opacity: 0.36,
+  depthWrite: false,
+});
+sharedFootShadowMat.userData.isSharedAsset = true;
+
+const sharedFootRingGeo = new THREE.RingGeometry(TILE_PX * 0.31, TILE_PX * 0.39, 24);
+sharedFootRingGeo.rotateX(-Math.PI / 2);
+sharedFootRingGeo.userData.isSharedAsset = true;
+
+const sharedArrowShape = new THREE.Shape();
+const arrowR = TILE_PX * 0.09;
+sharedArrowShape.moveTo(0, arrowR * 1.35);
+sharedArrowShape.lineTo(-arrowR, -arrowR * 0.5);
+sharedArrowShape.lineTo(arrowR, -arrowR * 0.5);
+sharedArrowShape.closePath();
+const sharedFootArrowGeo = new THREE.ShapeGeometry(sharedArrowShape);
+sharedFootArrowGeo.rotateX(Math.PI / 2);
+sharedFootArrowGeo.userData.isSharedAsset = true;
+
 function createFootRing(colorHex: number, isMe: boolean): THREE.Group {
   const group = new THREE.Group();
   group.position.y = 0.6;
 
   // 1. Soft dark contact shadow under feet
-  const shadowGeo = new THREE.CircleGeometry(TILE_PX * 0.34, 24);
-  shadowGeo.rotateX(-Math.PI / 2);
-  const shadowMat = new THREE.MeshBasicMaterial({
-    color: 0x120b07,
-    transparent: true,
-    opacity: 0.36,
-    depthWrite: false,
-  });
-  const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+  const shadowMesh = new THREE.Mesh(sharedFootShadowGeo, sharedFootShadowMat);
   group.add(shadowMesh);
 
   // 2. Crisp Overcooked/RSC colored player ring
-  const ringGeo = new THREE.RingGeometry(TILE_PX * 0.31, TILE_PX * 0.39, 32);
-  ringGeo.rotateX(-Math.PI / 2);
   const ringMat = new THREE.MeshBasicMaterial({
     color: isMe ? 0xff4b3e : colorHex,
     transparent: true,
@@ -111,20 +131,12 @@ function createFootRing(colorHex: number, isMe: boolean): THREE.Group {
     side: THREE.DoubleSide,
     depthWrite: false,
   });
-  const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+  const ringMesh = new THREE.Mesh(sharedFootRingGeo, ringMat);
   ringMesh.position.y = 0.2;
   ringMesh.name = 'playerRingMesh';
   group.add(ringMesh);
 
   // 3. Forward direction indicator triangle on the front edge of the ring (+Z is forward for ChefModel)
-  const arrowShape = new THREE.Shape();
-  const r = TILE_PX * 0.09;
-  arrowShape.moveTo(0, r * 1.35);
-  arrowShape.lineTo(-r, -r * 0.5);
-  arrowShape.lineTo(r, -r * 0.5);
-  arrowShape.closePath();
-  const arrowGeo = new THREE.ShapeGeometry(arrowShape);
-  arrowGeo.rotateX(Math.PI / 2);
   const arrowMat = new THREE.MeshBasicMaterial({
     color: isMe ? 0xffe066 : colorHex,
     transparent: true,
@@ -132,7 +144,7 @@ function createFootRing(colorHex: number, isMe: boolean): THREE.Group {
     side: THREE.DoubleSide,
     depthWrite: false,
   });
-  const arrowMesh = new THREE.Mesh(arrowGeo, arrowMat);
+  const arrowMesh = new THREE.Mesh(sharedFootArrowGeo, arrowMat);
   arrowMesh.position.set(0, 0.35, TILE_PX * 0.44);
   arrowMesh.name = 'playerRingArrow';
   group.add(arrowMesh);
@@ -184,6 +196,22 @@ function createWashSpongeProp(): THREE.Group {
   return sponge;
 }
 
+const tempSpinePos = new THREE.Vector3();
+const tempFootLPos = new THREE.Vector3();
+const tempFootRPos = new THREE.Vector3();
+const tempWorldScale = new THREE.Vector3();
+let cachedChefDebugSearch: string | null = null;
+let cachedChefIsDebug = false;
+function isChefDebugMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  const s = window.location.search;
+  if (s !== cachedChefDebugSearch) {
+    cachedChefDebugSearch = s;
+    cachedChefIsDebug = new URLSearchParams(s).get('debug') === '1';
+  }
+  return cachedChefIsDebug;
+}
+
 export class ChefModel {
   public group = new THREE.Group();
   public id: string = ''; // to be set by ThreeRenderer
@@ -199,6 +227,8 @@ export class ChefModel {
   private activeAction: THREE.AnimationAction | null = null;
   private spineBone: THREE.Object3D | null = null;
   private handBone: THREE.Object3D | null = null;
+  private footLBone: THREE.Object3D | null = null;
+  private footRBone: THREE.Object3D | null = null;
   private rigBones: {
     hips?: THREE.Object3D;
     abdomen?: THREE.Object3D;
@@ -227,6 +257,7 @@ export class ChefModel {
   private youBadge: THREE.Sprite | null = null;
   private speakingBadge: THREE.Sprite | null = null;
   private footRingGroup: THREE.Group | null = null;
+  private footRingMesh: THREE.Mesh | null = null;
   private chopKnifeProp: THREE.Group | null = null;
   private washSpongeProp: THREE.Group | null = null;
 
@@ -234,27 +265,31 @@ export class ChefModel {
   private throwTimer = 0;
   private cheerTimer = 0;
 
-  constructor(colorHex: number, isMe: boolean) {
+  constructor(colorHex: number, isMe: boolean, isCustomer: boolean = false) {
     if (typeof window !== 'undefined') {
       (window as any).THREE = THREE;
     }
     this.colorHex = colorHex || 0xe63946;
     this.isMe = isMe;
+    this.isCustomer = isCustomer;
     this.group.add(this.carryAnchor);
 
-    this.footRingGroup = createFootRing(this.colorHex, isMe);
-    this.group.add(this.footRingGroup);
+    if (!isCustomer) {
+      this.footRingGroup = createFootRing(this.colorHex, isMe);
+      this.footRingMesh = (this.footRingGroup.getObjectByName('playerRingMesh') as THREE.Mesh) || null;
+      this.group.add(this.footRingGroup);
 
-    this.chopKnifeProp = createChefKnifeProp();
-    this.washSpongeProp = createWashSpongeProp();
+      this.chopKnifeProp = createChefKnifeProp();
+      this.washSpongeProp = createWashSpongeProp();
 
-    if (typeof document !== 'undefined') {
-      this.youBadge = createYouBadge();
-      this.youBadge.visible = Boolean(isMe);
-      this.group.add(this.youBadge);
+      if (typeof document !== 'undefined') {
+        this.youBadge = createYouBadge();
+        this.youBadge.visible = Boolean(isMe);
+        this.group.add(this.youBadge);
 
-      this.speakingBadge = createSpeakingBadge();
-      this.group.add(this.speakingBadge);
+        this.speakingBadge = createSpeakingBadge();
+        this.group.add(this.speakingBadge);
+      }
     }
   }
 
@@ -327,6 +362,8 @@ export class ChefModel {
     this.activeAction = null;
     this.spineBone = null;
     this.handBone = null;
+    this.footLBone = null;
+    this.footRBone = null;
     this.rigBones = {};
 
     this.isQuat = true;
@@ -352,6 +389,8 @@ export class ChefModel {
     // GATE 3: Tìm xương tay phải FistR để gắn vật cầm và các xương thân trên cho hoạt ảnh thái/rửa
     clonedModel.traverse((child) => {
       if (child.name === 'FistR') this.handBone = child;
+      if (child.name === 'FootL') this.footLBone = child;
+      if (child.name === 'FootR') this.footRBone = child;
       if (child.name === 'Hips') this.rigBones.hips = child;
       if (child.name === 'Abdomen') this.rigBones.abdomen = child;
       if (child.name === 'Torso') this.rigBones.torso = child;
@@ -547,7 +586,12 @@ export class ChefModel {
     if (this.cheerTimer > 0) this.cheerTimer -= dtSec;
 
     if (!playerFrame) {
-      if (this.mixer) this.mixer.update(dtSec);
+      if (this.mixer) {
+        const isClampedSit = this.isCustomer && this.state === 'sit' && this.activeAction && !this.activeAction.isRunning();
+        if (!isClampedSit) {
+          this.mixer.update(dtSec);
+        }
+      }
       return;
     }
 
@@ -583,8 +627,7 @@ export class ChefModel {
     const targetState = pick.key;
 
     if (this.state !== targetState) {
-      const isDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
-      if (isDebug) {
+      if (isChefDebugMode()) {
         console.log(`[QUAT] key=${targetState} actingStation=${actingStation} speed=${speed.toFixed(2)} held=${Boolean(held)}`);
       }
       this.state = targetState;
@@ -644,82 +687,72 @@ export class ChefModel {
       this.glbGroup.rotation.z += (targetBank - this.glbGroup.rotation.z) * Math.min(1, dtSec * 12);
     }
 
-    if (this.footRingGroup) {
-      const ring = this.footRingGroup.getObjectByName('playerRingMesh') as THREE.Mesh | undefined;
-      if (ring) {
-        const pulse = this.isMe ? 1 + Math.sin(this.time * 5) * 0.045 : 1;
-        ring.scale.set(pulse, pulse, 1);
-      }
+    if (this.footRingMesh) {
+      const pulse = this.isMe ? 1 + Math.sin(this.time * 5) * 0.045 : 1;
+      this.footRingMesh.scale.set(pulse, pulse, 1);
     }
 
     // BƯỚC 1: Cung cấp window.__QUAT__ cho kiểm thử trình duyệt (?debug=1)
-    if (this.isMe && typeof window !== 'undefined') {
-      const isDebug = new URLSearchParams(window.location.search).get('debug') === '1';
-      if (isDebug) {
-        const footLPos = new THREE.Vector3();
-        const footRPos = new THREE.Vector3();
-        const footLBone = this.model?.getObjectByName('FootL');
-        const footRBone = this.model?.getObjectByName('FootR');
-        if (footLBone) footLBone.getWorldPosition(footLPos);
-        if (footRBone) footRBone.getWorldPosition(footRPos);
+    if (this.isMe && isChefDebugMode()) {
+      if (this.footLBone) this.footLBone.getWorldPosition(tempFootLPos);
+      if (this.footRBone) this.footRBone.getWorldPosition(tempFootRPos);
 
-        (window as any).__QUAT__ = {
-          key: this.state,
-          once: pick.once,
-          timeScale: pick.timeScale,
-          scale: this.quatScale,
-          h: this.quatH,
-          actingStation: playerFrame.actingStation ?? null,
-          ready: this.isReady,
-          x: playerFrame.x,
-          y: playerFrame.y,
-          fx: playerFrame.fx,
-          fy: playerFrame.fy,
-          held: Boolean(held),
-          footL: { x: footLPos.x, y: footLPos.y, z: footLPos.z },
-          footR: { x: footRPos.x, y: footRPos.y, z: footRPos.z },
-        };
-      }
+      (window as any).__QUAT__ = {
+        key: this.state,
+        once: pick.once,
+        timeScale: pick.timeScale,
+        scale: this.quatScale,
+        h: this.quatH,
+        actingStation: playerFrame.actingStation ?? null,
+        ready: this.isReady,
+        x: playerFrame.x,
+        y: playerFrame.y,
+        fx: playerFrame.fx,
+        fy: playerFrame.fy,
+        held: Boolean(held),
+        footL: { x: tempFootLPos.x, y: tempFootLPos.y, z: tempFootLPos.z },
+        footR: { x: tempFootRPos.x, y: tempFootRPos.y, z: tempFootRPos.z },
+      };
     }
 
-    // Cập nhật vị trí neo của carryAnchor ngay tầm bụng / hai bàn tay của Chibi Chef (không bị đẩy vọt lên mặt)
-    const itemKey = this.heldItemData?.id || this.heldItemData?.tool || this.heldItemData?.type || '';
-    const carryCfg = getCarryConfig(itemKey);
-    if (this.spineBone) {
-      const spinePos = new THREE.Vector3();
-      this.spineBone.getWorldPosition(spinePos);
-      if (this.baseSpineY === null) {
-         this.baseSpineY = spinePos.y;
-      }
-      const rawDy = this.baseSpineY !== null ? (spinePos.y - this.baseSpineY) * 0.25 : 0;
-      const dy = Math.max(-1.8, Math.min(1.8, rawDy));
-      const idleCarryBob = (held && speed <= 0.05) ? Math.sin(this.time * 3.5) * 0.6 : 0;
-      this.carryAnchor.position.y = carryCfg.height * TILE_PX + dy + idleCarryBob;
-    } else {
-      this.carryAnchor.position.y = carryCfg.height * TILE_PX;
-    }
-
-    // Đảm bảo scale vật cầm luôn giữ nguyên tỉ lệ 1:1 với vật trên bàn/quầy nếu model mesh được nạp thêm/thay thế async
-    if (this.heldItemModel && this.heldItemModel.children.length > 0) {
-      const childCount = this.heldItemModel.children.length;
-      if (this.heldItemModel.userData.scaledCount !== childCount) {
-        const worldScale = new THREE.Vector3();
-        this.carryAnchor.updateWorldMatrix(true, false);
-        this.carryAnchor.getWorldScale(worldScale);
-        const parentScale = worldScale.x || 1;
-        if (parentScale > 1.01) {
-          const isToolOrPlate = this.heldItemData?.type === 'tool' || this.heldItemData?.type === 'plate';
-          const isMushroom = this.heldItemData?.id === 'mushroom';
-          const targetSize = isToolOrPlate
-            ? 0.66
-            : isMushroom
-              ? (this.heldItemData?.state === 'chopped' ? 0.36 : 0.42)
-              : 0.50;
-          applyHeldItemScale(this.heldItemModel, this.carryAnchor, targetSize, TILE_PX);
-        } else {
-          this.heldItemModel.scale.setScalar(carryCfg.scale);
+    // Cập nhật vị trí neo của carryAnchor ngay tầm bụng / hai bàn tay của Chibi Chef (chỉ tính matrix xương khi có vật cầm)
+    if (held || this.carryAnchor.children.length > 0 || this.baseSpineY === null) {
+      const itemKey = this.heldItemData?.id || this.heldItemData?.tool || this.heldItemData?.type || '';
+      const carryCfg = getCarryConfig(itemKey);
+      if (this.spineBone) {
+        this.spineBone.getWorldPosition(tempSpinePos);
+        if (this.baseSpineY === null) {
+          this.baseSpineY = tempSpinePos.y;
         }
-        this.heldItemModel.userData.scaledCount = childCount;
+        const rawDy = this.baseSpineY !== null ? (tempSpinePos.y - this.baseSpineY) * 0.25 : 0;
+        const dy = Math.max(-1.8, Math.min(1.8, rawDy));
+        const idleCarryBob = (held && speed <= 0.05) ? Math.sin(this.time * 3.5) * 0.6 : 0;
+        this.carryAnchor.position.y = carryCfg.height * TILE_PX + dy + idleCarryBob;
+      } else {
+        this.carryAnchor.position.y = carryCfg.height * TILE_PX;
+      }
+
+      // Đảm bảo scale vật cầm luôn giữ nguyên tỉ lệ 1:1 với vật trên bàn/quầy nếu model mesh được nạp thêm/thay thế async
+      if (this.heldItemModel && this.heldItemModel.children.length > 0) {
+        const childCount = this.heldItemModel.children.length;
+        if (this.heldItemModel.userData.scaledCount !== childCount) {
+          this.carryAnchor.updateWorldMatrix(true, false);
+          this.carryAnchor.getWorldScale(tempWorldScale);
+          const parentScale = tempWorldScale.x || 1;
+          if (parentScale > 1.01) {
+            const isToolOrPlate = this.heldItemData?.type === 'tool' || this.heldItemData?.type === 'plate';
+            const isMushroom = this.heldItemData?.id === 'mushroom';
+            const targetSize = isToolOrPlate
+              ? 0.66
+              : isMushroom
+                ? (this.heldItemData?.state === 'chopped' ? 0.36 : 0.42)
+                : 0.50;
+            applyHeldItemScale(this.heldItemModel, this.carryAnchor, targetSize, TILE_PX);
+          } else {
+            this.heldItemModel.scale.setScalar(carryCfg.scale);
+          }
+          this.heldItemModel.userData.scaledCount = childCount;
+        }
       }
     }
 

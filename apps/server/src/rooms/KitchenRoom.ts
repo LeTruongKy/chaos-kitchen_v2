@@ -151,12 +151,19 @@ export class KitchenRoom extends Room<KitchenState> {
       }
 
       let countdown = COUNTDOWN_SECONDS;
+      this.prepareGameState();
       this.setPhase('countdown', countdown);
+      if (this.gameState) {
+        this.broadcastSnapshot(toSnapshot(this.gameState));
+      }
 
       this.countdownTimer = this.clock.setInterval(() => {
         countdown--;
         if (countdown > 0) {
           this.setPhase('countdown', countdown);
+          if (this.gameState) {
+            this.broadcastSnapshot(toSnapshot(this.gameState));
+          }
         } else {
           this.countdownTimer?.clear();
           this.countdownTimer = undefined;
@@ -285,14 +292,21 @@ export class KitchenRoom extends Room<KitchenState> {
     logger.info(`Room ${this.roomId} created with options:`, options);
   }
 
-  private startGame() {
-    this.setPhase('playing');
+  private broadcastSnapshot(snapshot: any) {
+    if (snapshot && this.isSoloMode && this.members.length > 0) {
+      const clientId = this.members[0]?.id;
+      if (clientId) {
+        snapshot.activeChefId = this.activeChefMap[clientId];
+      }
+    }
+    this.broadcast(MSG.SNAPSHOT, snapshot);
+  }
 
+  private prepareGameState(): boolean {
     const level = getLevel(this.levelId);
     if (!level) {
       logger.error(`Level ${this.levelId} not found`);
-      this.backToLobby();
-      return;
+      return false;
     }
 
     const playerIds = this.isSoloMode
@@ -303,7 +317,6 @@ export class KitchenRoom extends Room<KitchenState> {
       this.members.forEach(m => {
         this.activeChefMap[m.id] = `${m.id}_1`;
       });
-      // also assign ownerId to the players? createGameState doesn't know about ownerId... wait, we will patch createGameState if needed.
     } else {
       this.activeChefMap = {};
     }
@@ -311,36 +324,40 @@ export class KitchenRoom extends Room<KitchenState> {
     this.gameState = createGameState(level, playerIds, Date.now());
     if (this.isSoloMode) {
       for (const p of this.gameState.players) {
-        // ID looks like "abc_1" or "abc_2"
         p.ownerId = p.id.slice(0, -2);
       }
     }
 
     if (DEBUG_DURATION !== undefined && DEBUG_DURATION > 0) {
-      this.gameState.timeLeft = DEBUG_DURATION * 1000;
+      this.gameState.timeLeft = DEBUG_DURATION;
     }
 
     this.inputQueues = {};
     for (const id of playerIds) {
       this.inputQueues[id] = new InputQueue();
     }
+    return true;
+  }
 
-    this.broadcast(MSG.SNAPSHOT, toSnapshot(this.gameState));
+  private startGame() {
+    this.setPhase('playing');
+
+    if (!this.gameState && !this.prepareGameState()) {
+      this.backToLobby();
+      return;
+    }
+
+    const gameState = this.gameState!;
+    this.broadcastSnapshot(toSnapshot(gameState));
 
     this.gameLoop = new GameLoop(
-      this.gameState,
+      gameState,
       this.inputQueues,
       (events) => {
         for (const e of events) this.broadcast(MSG.EVENT, e);
       },
       (snapshot: any) => {
-        if (snapshot && this.isSoloMode && this.members.length > 0) {
-          const clientId = this.members[0]?.id;
-          if (clientId) {
-            snapshot.activeChefId = this.activeChefMap[clientId];
-          }
-        }
-        this.broadcast(MSG.SNAPSHOT, snapshot);
+        this.broadcastSnapshot(snapshot);
       },
       () => this.endGame(),
       (playerId) => {
@@ -349,17 +366,13 @@ export class KitchenRoom extends Room<KitchenState> {
       },
       () => this.members.some((m) => m.connected)
     );
-
-    this.setSimulationInterval((dt) => {
-      this.gameLoop?.advance(dt);
-    });
   }
 
   private endGame() {
     if (this.phase !== 'playing' || !this.gameState) return;
     this.setPhase('finished');
     this.finishedAt = Date.now();
-    this.setSimulationInterval(undefined);
+    this.gameLoop = undefined;
     this.broadcast(MSG.RESULTS, buildResults(this.gameState));
 
     this.backToLobbyTimer = this.clock.setTimeout(() => {
@@ -368,7 +381,6 @@ export class KitchenRoom extends Room<KitchenState> {
   }
 
   private backToLobby() {
-    this.setSimulationInterval(undefined);
     this.gameState = undefined;
     this.gameLoop = undefined;
     this.inputQueues = {};

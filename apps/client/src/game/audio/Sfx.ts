@@ -687,6 +687,8 @@ export class Sfx {
     osc.stop(now + 0.055);
   }
 
+  private sizzleNoiseBuffer?: AudioBuffer;
+
   /**
    * Tiếng xèo xèo (sizzle) khi thịt đang rán trên chảo hoặc súp đang sôi trên bếp
    */
@@ -704,16 +706,19 @@ export class Sfx {
 
     if (ctx.createBuffer && ctx.createBufferSource) {
       try {
-        const sampleRate = ctx.sampleRate || 44100;
         const dur = 0.16;
-        const bufferSize = Math.floor(sampleRate * dur);
-        const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * (0.6 + 0.4 * Math.random());
+        if (!this.sizzleNoiseBuffer) {
+          const sampleRate = ctx.sampleRate || 44100;
+          const bufferSize = Math.floor(sampleRate * dur);
+          const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * (0.6 + 0.4 * Math.random());
+          }
+          this.sizzleNoiseBuffer = buffer;
         }
         const source = ctx.createBufferSource();
-        source.buffer = buffer;
+        source.buffer = this.sizzleNoiseBuffer;
 
         const gainNode = ctx.createGain();
         gainNode.gain.setValueAtTime(vol, now);

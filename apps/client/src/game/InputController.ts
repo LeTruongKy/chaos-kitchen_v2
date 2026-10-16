@@ -3,6 +3,14 @@ import { NetClient } from '../net/NetClient';
 import { appStore } from '../state/store';
 import { PilotInput } from './TapPilot';
 
+export function isTouchDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (
+    (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) ||
+    'ontouchstart' in window
+  );
+}
+
 export class InputController {
   private keys: Set<string> = new Set();
   private pendingInteract = false;
@@ -25,6 +33,12 @@ export class InputController {
   private touchInteractEdge = false; // distinct edge for touch
   private touchThrowEdge = false;
 
+  // Double-tap sprint state (<= 300ms, <= 40px -> sprint 1000ms or until 3rd tap)
+  private lastTapTime = 0;
+  private lastTapX = 0;
+  private lastTapY = 0;
+  private doubleTapSprintUntil = 0;
+
   private pendingThrow = false;
 
   private touchUI?: HTMLElement;
@@ -38,26 +52,17 @@ export class InputController {
     const onKeyDown = (e: KeyboardEvent) => this.handleKeyDown(e);
     const onKeyUp = (e: KeyboardEvent) => this.handleKeyUp(e);
     const onBlur = () => this.handleBlur();
+    const onPointerDown = (e: PointerEvent) => this.handlePointerDownForDoubleTap(e);
 
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     window.addEventListener('blur', onBlur);
+    window.addEventListener('pointerdown', onPointerDown);
 
-    const isTouchDevice = () => {
-      return (
-        window.matchMedia('(pointer: coarse)').matches ||
-        window.matchMedia('(any-pointer: coarse)').matches ||
-        'ontouchstart' in window ||
-        (typeof navigator !== 'undefined' && (navigator.maxTouchPoints || 0) > 0)
-      );
-    };
-
-    if (isTouchDevice()) {
-      this.setupTouchControls();
-    }
+    this.setupTouchControls();
 
     const checkTouch = () => {
-      if (isTouchDevice() && !this.touchUI) {
+      if (!this.touchUI) {
         this.setupTouchControls();
       }
     };
@@ -69,6 +74,7 @@ export class InputController {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onBlur);
+      window.removeEventListener('pointerdown', onPointerDown);
       mediaQuery.removeEventListener?.('change', checkTouch);
       window.removeEventListener('resize', checkTouch);
       if (this.touchUI && this.touchUI.parentElement) {
@@ -78,12 +84,55 @@ export class InputController {
     };
   }
 
+  private handlePointerDownForDoubleTap(e: PointerEvent) {
+    const state = appStore.get();
+    if (state.screen !== 'game' || state.phase !== 'playing') return;
+    if (e.button !== undefined && e.button !== 0) return;
+
+    const targetEl = e.target as HTMLElement | null;
+    if (
+      targetEl &&
+      typeof targetEl.closest === 'function' &&
+      targetEl.closest(
+        'button, .hud-top-bar, .hud-recipe-bar, .rsc-recipe-modal-backdrop, .hud-pause-modal-backdrop, .hud-action-pill-btn, .hud-audio-btn, .touch-control-btn'
+      )
+    ) {
+      return;
+    }
+
+    const now = performance.now();
+    const x = e.clientX ?? 0;
+    const y = e.clientY ?? 0;
+
+    // 3rd tap while sprint is active cancels double-tap sprint immediately
+    if (now < this.doubleTapSprintUntil) {
+      this.doubleTapSprintUntil = 0;
+      this.lastTapTime = 0;
+      return;
+    }
+
+    const dt = now - this.lastTapTime;
+    const dist = Math.hypot(x - this.lastTapX, y - this.lastTapY);
+
+    if (this.lastTapTime > 0 && dt <= 300 && dist <= 40) {
+      this.doubleTapSprintUntil = now + 1000;
+      this.lastTapTime = 0;
+    } else {
+      this.lastTapTime = now;
+      this.lastTapX = x;
+      this.lastTapY = y;
+    }
+  }
+
   public setPilotProvider(getPilotInput: () => PilotInput | null, cancelPilot: () => void) {
     this.getPilotInput = getPilotInput;
     this.cancelPilot = cancelPilot;
   }
 
   public update(time: number, delta: number) {
+    if (!this.touchUI) {
+      this.setupTouchControls();
+    }
     // Clamp accumulator to avoid bursting hundreds of input packets after frame stalls/freezes
     this.accumulator = Math.min(this.accumulator + delta, this.TICK_MS * 4);
 
@@ -124,7 +173,13 @@ export class InputController {
 
     let act = this.keys.has('KeyF') || this.touchAct;
     let interact = this.pendingInteract || this.touchInteractEdge;
-    const dash = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || this.keys.has('KeyK') || this.touchDash;
+    const isDoubleTapSprint = performance.now() < this.doubleTapSprintUntil;
+    const dash =
+      this.keys.has('ShiftLeft') ||
+      this.keys.has('ShiftRight') ||
+      this.keys.has('KeyK') ||
+      this.touchDash ||
+      isDoubleTapSprint;
     const throwAction = this.pendingThrow || this.touchThrowEdge;
 
     const hasManualControl = mx !== 0 || my !== 0 || act || interact || throwAction;
@@ -233,6 +288,7 @@ export class InputController {
 
     // Subtle Ready, Set, Cook! Tap-to-Interact guide banner for mobile
     const tapBanner = document.createElement('div');
+    tapBanner.className = 'touch-tap-banner';
     tapBanner.textContent = '👆 Chạm vào quầy / bàn để di chuyển & tự động thao tác!';
     tapBanner.style.position = 'absolute';
     tapBanner.style.bottom = '54px';
@@ -253,12 +309,13 @@ export class InputController {
       tapBanner.style.opacity = '0';
     }, 5000);
 
-    // Compact Switch Chef Button (Bottom-Left)
+    // Compact Switch Chef Button (Bottom-Left Corner)
     const btnSwitch = document.createElement('div');
+    btnSwitch.className = 'touch-control-btn touch-btn-switch';
     btnSwitch.textContent = '🔄 Đổi Chef';
     btnSwitch.style.position = 'absolute';
-    btnSwitch.style.bottom = '52px';
-    btnSwitch.style.left = '14px';
+    btnSwitch.style.bottom = '12px';
+    btnSwitch.style.left = '12px';
     this.stylePillBtn(btnSwitch, 'linear-gradient(180deg, #ffde59 0%, #f59e0b 100%)', '#181818');
 
     const triggerSwitch = (e: Event) => {
@@ -273,12 +330,13 @@ export class InputController {
     btnSwitch.addEventListener('touchstart', triggerSwitch, { passive: false });
     ui.appendChild(btnSwitch);
 
-    // Compact Sprint / Boost Button (Bottom-Right)
+    // Compact Sprint / Boost Button (Bottom-Right Corner)
     const btnDash = document.createElement('div');
+    btnDash.className = 'touch-control-btn touch-btn-dash';
     btnDash.textContent = '⚡ Tăng tốc';
     btnDash.style.position = 'absolute';
-    btnDash.style.bottom = '52px';
-    btnDash.style.right = '14px';
+    btnDash.style.bottom = '12px';
+    btnDash.style.right = '12px';
     this.stylePillBtn(btnDash, 'linear-gradient(180deg, #38bdf8 0%, #0284c7 100%)', '#ffffff');
 
     const triggerDash = (e: Event) => {
@@ -316,7 +374,13 @@ export class InputController {
     el.style.fontFamily = "'Segoe UI', 'Nunito', system-ui, -apple-system, sans-serif";
     el.style.fontWeight = '800';
     el.style.fontSize = '13px';
-    el.style.padding = '8px 14px';
+    el.style.minWidth = '56px';
+    el.style.minHeight = '56px';
+    el.style.height = '56px';
+    el.style.padding = '0 16px';
+    el.style.alignItems = 'center';
+    el.style.justifyContent = 'center';
+    el.style.boxSizing = 'border-box';
     el.style.borderRadius = '999px';
     el.style.border = '2.5px solid #181818';
     el.style.boxShadow = '0 3px 0 #181818';

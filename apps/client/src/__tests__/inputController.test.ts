@@ -136,4 +136,51 @@ describe('InputController', () => {
     input = (netClientMock.sendInput as any).mock.calls[2][0] as PlayerInput;
     expect(input.dash).toBe(false);
   });
+
+  it('activates dash=true for 1s on double-tap within 300ms and <=40px, and cancels on 3rd tap', () => {
+    let now = 1000;
+    const nowSpy = vi.spyOn(performance, 'now').mockImplementation(() => now);
+
+    // 1st tap at (100, 100)
+    window.dispatchEvent(new MouseEvent('pointerdown', { clientX: 100, clientY: 100, button: 0 }));
+    inputController.update(now, 34);
+    let input = (netClientMock.sendInput as any).mock.calls.at(-1)[0] as PlayerInput;
+    expect(input.dash).toBe(false);
+
+    // 2nd tap 150ms later at (115, 110) (distance ~18px <= 40px)
+    now = 1150;
+    window.dispatchEvent(new MouseEvent('pointerdown', { clientX: 115, clientY: 110, button: 0 }));
+    inputController.update(now, 34);
+    input = (netClientMock.sendInput as any).mock.calls.at(-1)[0] as PlayerInput;
+    expect(input.dash).toBe(true);
+
+    // Still active at +800ms (t = 1950ms)
+    now = 1950;
+    inputController.update(now, 34);
+    input = (netClientMock.sendInput as any).mock.calls.at(-1)[0] as PlayerInput;
+    expect(input.dash).toBe(true);
+
+    // 3rd tap at t = 2000ms cancels sprint early
+    now = 2000;
+    window.dispatchEvent(new MouseEvent('pointerdown', { clientX: 120, clientY: 110, button: 0 }));
+    inputController.update(now, 34);
+    input = (netClientMock.sendInput as any).mock.calls.at(-1)[0] as PlayerInput;
+    expect(input.dash).toBe(false);
+
+    // Re-trigger double tap and let it expire naturally after 1000ms
+    now = 3000;
+    window.dispatchEvent(new MouseEvent('pointerdown', { clientX: 200, clientY: 200, button: 0 }));
+    now = 3200;
+    window.dispatchEvent(new MouseEvent('pointerdown', { clientX: 210, clientY: 205, button: 0 }));
+    inputController.update(now, 34);
+    input = (netClientMock.sendInput as any).mock.calls.at(-1)[0] as PlayerInput;
+    expect(input.dash).toBe(true);
+
+    now = 4250; // > 1000ms after 2nd tap
+    inputController.update(now, 34);
+    input = (netClientMock.sendInput as any).mock.calls.at(-1)[0] as PlayerInput;
+    expect(input.dash).toBe(false);
+
+    nowSpy.mockRestore();
+  });
 });

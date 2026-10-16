@@ -1,10 +1,11 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { IGameRenderer, RenderFrame, RendererOptions } from '../render/IGameRenderer';
 import { LevelDef, GameEvent, parseLevel, ParsedLevel, TILE_PX, PLAYER_RADIUS } from '@kitchen/core';
 import { toon, withOutline, clearMaterials } from './materials';
 import { THEMES, ThemePalette } from './themes';
 import { SceneryManager } from './SceneryManager';
-import { createStationModel, updateStationModel, COUNTER_SURFACE_Y, TABLE_SURFACE_Y, getItemVisualKey } from './stations';
+import { createStationModel, updateStationModel, COUNTER_SURFACE_Y, TABLE_SURFACE_Y, getItemVisualKey, stationAoSkirtGeo, stationAoSkirtMat } from './stations';
 import { ChefModel } from './chef/Chef';
 import { ParticleSystem } from './vfx/Particles';
 import { createItemModel } from './items';
@@ -15,6 +16,7 @@ import { CARRY_CONFIGS } from './chef/carryConfig';
 import { sfx } from '../audio/Sfx';
 import { loadQuatModel, getCharacterUrlForCosmetic, QUAT_CUSTOMER_MODELS } from './chef/quatClips';
 import { generateLiveThumbnails } from './ThumbnailCache';
+import { isTouchDevice } from '../InputController';
 
 let cachedWoodTex: THREE.Texture | null = null;
 function getSharedWoodTexture(): THREE.Texture {
@@ -31,7 +33,7 @@ function getSharedWoodTexture(): THREE.Texture {
 function isMobileOrCoarseDevice(): boolean {
   if (typeof window === 'undefined') return false;
   return (
-    window.matchMedia('(pointer: coarse)').matches ||
+    isTouchDevice() ||
     window.innerWidth <= 960 ||
     window.innerHeight <= 560
   );
@@ -72,12 +74,18 @@ export class ThreeRenderer implements IGameRenderer {
   private tapHighlight: THREE.Object3D | null = null;
   private raycaster = new THREE.Raycaster();
   private tempProjVec = new THREE.Vector3();
+  private tempPartPos = new THREE.Vector3();
+  private tempPartDir = new THREE.Vector3();
   private hintArrow: THREE.Mesh | null = null;
   private shakeTimer = 0;
 
   private debugDiv: HTMLDivElement | null = null;
   private vignetteDiv: HTMLDivElement | null = null;
   private isDebug = false;
+  private isCollisionView = false;
+  private isMobileDevice = false;
+  private viewportW = 800;
+  private viewportH = 600;
   private lastTime = 0;
   private frames = 0;
 
@@ -87,10 +95,18 @@ export class ThreeRenderer implements IGameRenderer {
 
   private baseCameraPos = new THREE.Vector3();
   private baseCameraLook = new THREE.Vector3();
+  private desktopCameraPos = new THREE.Vector3();
+  private desktopCameraLook = new THREE.Vector3();
+  private currentCameraLook = new THREE.Vector3();
+  private currentCameraDist = 0;
+  private targetCameraDist = 0;
+  private cameraInitialized = false;
 
   async init(container: HTMLElement, level: LevelDef, opts: RendererOptions): Promise<void> {
     this.container = container;
     this.currentLevelId = level.id || '';
+    // Layer 1 holds invisible touch hitboxes so raycaster hits them but camera (Layer 0) skips drawing them
+    this.raycaster.layers.enable(1);
 
     try {
       this.renderer = getSharedWebGLRenderer();
@@ -111,16 +127,22 @@ export class ThreeRenderer implements IGameRenderer {
       throw new Error('WebGLNotSupported');
     }
 
-    // Generate live 3D thumbnails for customer order bubbles & recipe bar once per session
-    generateLiveThumbnails(this.renderer);
-
     const isMobile = isMobileOrCoarseDevice();
-    const maxDpr = isMobile ? 1.15 : 1.35;
+    this.isMobileDevice = isMobile;
+
+    // On desktop, generate live 3D thumbnails once per session; on mobile, use pre-rendered static PNGs in /thumbs/
+    if (!isMobile) {
+      generateLiveThumbnails(this.renderer);
+    }
+
+    const maxDpr = isMobile ? 0.75 : 1.35;
+    this.viewportW = container.clientWidth || 800;
+    this.viewportH = container.clientHeight || 600;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
-    this.renderer.setSize(container.clientWidth, container.clientHeight);
+    this.renderer.setSize(this.viewportW, this.viewportH);
     this.renderer.shadowMap.enabled = false;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMapping = isMobile ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.96;
     container.appendChild(this.renderer.domElement);
 
@@ -135,9 +157,9 @@ export class ThreeRenderer implements IGameRenderer {
 
     this.theme = (THEMES[level.theme] || THEMES['diner']) as ThemePalette;
     this.scene.background = new THREE.Color(0x7ec8e3);
-    this.scene.fog = new THREE.FogExp2(0x7ec8e3, 0.00010);
+    this.scene.fog = isMobile ? null : new THREE.FogExp2(0x7ec8e3, 0.00010);
 
-    const aspect = container.clientWidth / container.clientHeight;
+    const aspect = this.viewportW / this.viewportH;
     // FOV 30 degrees for Overcooked! clean overhead isometric look
     this.camera = new THREE.PerspectiveCamera(30, aspect, 1, 5000);
 
@@ -165,7 +187,12 @@ export class ThreeRenderer implements IGameRenderer {
     this.sceneryManager = new SceneryManager(this.scene, this.parsedLevel, this.theme);
     this.buildMap(this.parsedLevel);
 
-    this.isDebug = new URLSearchParams(window.location.search).has('debug');
+    const searchParams = new URLSearchParams(window.location.search);
+    this.isDebug = searchParams.has('debug');
+    this.isCollisionView = searchParams.get('view') === 'collision';
+    if (typeof window !== 'undefined') {
+      (window as any).__CK3D__ = { scene: this.scene, camera: this.camera, THREE, loader: AssetLoader.getInstance(), createItemModel, renderer: this };
+    }
     if (this.isDebug) {
       this.debugDiv = document.createElement('div');
       this.debugDiv.style.position = 'absolute';
@@ -177,8 +204,6 @@ export class ThreeRenderer implements IGameRenderer {
       this.debugDiv.style.zIndex = '9999';
       this.debugDiv.style.fontFamily = 'monospace';
       document.body.appendChild(this.debugDiv);
-      // Debug handle for visual audit
-      (window as any).__CK3D__ = { scene: this.scene, camera: this.camera, THREE, loader: AssetLoader.getInstance(), createItemModel, renderer: this };
     }
   }
 
@@ -186,6 +211,7 @@ export class ThreeRenderer implements IGameRenderer {
   private buildMap(level: ParsedLevel) {
     if (!this.scene) return;
 
+    const isMobile = this.isMobileDevice;
     const mapW = level.width * TILE_PX;
     const mapH = level.height * TILE_PX;
 
@@ -223,10 +249,25 @@ export class ThreeRenderer implements IGameRenderer {
       useDiningWoodTex = false;
     }
 
+    const createMapMat = (opts: { color: number; map?: THREE.Texture | null; roughness?: number }) => {
+      if (isMobile) {
+        return new THREE.MeshLambertMaterial({
+          color: opts.color,
+          map: opts.map ?? null,
+        });
+      }
+      return new THREE.MeshStandardMaterial({
+        color: opts.color,
+        map: opts.map ?? null,
+        roughness: opts.roughness ?? 0.80,
+        metalness: 0.05,
+      });
+    };
+
     // Grout base plane placed strictly at Y = -1.8 (well below tile bottoms at Y = -1.2) so zero Z-fighting occurs!
     const groutBaseGeo = new THREE.PlaneGeometry(mapW, mapH);
     groutBaseGeo.rotateX(-Math.PI / 2);
-    const kitchenGroutMat = new THREE.MeshStandardMaterial({ color: groutHex, roughness: 0.85, metalness: 0.05 });
+    const kitchenGroutMat = createMapMat({ color: groutHex, roughness: 0.85 });
     const groutBaseMesh = new THREE.Mesh(groutBaseGeo, kitchenGroutMat);
     groutBaseMesh.position.set(mapW / 2, -1.8, mapH / 2);
     groutBaseMesh.castShadow = false;
@@ -243,25 +284,21 @@ export class ThreeRenderer implements IGameRenderer {
     const cutawayTrimH = TILE_PX * 0.03;
     const cutawayBaseGeo = new THREE.BoxGeometry(TILE_PX, cutawayBaseH, TILE_PX * 0.36);
     const cutawayTrimGeo = new THREE.BoxGeometry(TILE_PX * 0.96, cutawayTrimH, TILE_PX * 0.28);
-    const cutawayBaseMat = new THREE.MeshStandardMaterial({ color: 0x5c3419, roughness: 0.80, metalness: 0.05 });
-    const cutawayTrimMat = new THREE.MeshStandardMaterial({ color: 0xc98a4b, roughness: 0.80, metalness: 0.05 });
+    const cutawayBaseMat = createMapMat({ color: 0x5c3419 });
+    const cutawayTrimMat = createMapMat({ color: 0xc98a4b });
 
-    const kitchenTileLightMat = new THREE.MeshStandardMaterial({ color: kitchenHexA, roughness: 0.80, metalness: 0.05 });
-    const kitchenTileDarkMat = new THREE.MeshStandardMaterial({ color: kitchenHexB, roughness: 0.80, metalness: 0.05 });
+    const kitchenTileLightMat = createMapMat({ color: kitchenHexA });
+    const kitchenTileDarkMat = createMapMat({ color: kitchenHexB });
 
     const woodTex = getSharedWoodTexture();
 
-    const woodMatLight = new THREE.MeshStandardMaterial({
-      map: useDiningWoodTex ? woodTex : null,
+    const woodMatLight = createMapMat({
       color: diningHexA,
-      roughness: 0.80,
-      metalness: 0.05,
-    });
-    const woodMatWarm = new THREE.MeshStandardMaterial({
       map: useDiningWoodTex ? woodTex : null,
+    });
+    const woodMatWarm = createMapMat({
       color: diningHexB,
-      roughness: 0.80,
-      metalness: 0.05,
+      map: useDiningWoodTex ? woodTex : null,
     });
 
     // Detect full dining room zone (near customer 'table' stations)
@@ -282,6 +319,7 @@ export class ThreeRenderer implements IGameRenderer {
     const kitchenDarkPositions: [number, number][] = [];
     const diningLightPositions: [number, number][] = [];
     const diningWarmPositions: [number, number][] = [];
+    const cutawayWallPositions: [number, number][] = [];
 
     const addFloorTileInstance = (tx: number, ty: number, px: number, pz: number) => {
       const even = (tx + ty) % 2 === 0;
@@ -304,16 +342,7 @@ export class ThreeRenderer implements IGameRenderer {
         if (tile === 'wall') {
           const isBottomFrontWall = (y === level.height - 1);
           if (isBottomFrontWall) {
-            // Render a clean low-profile Overcooked! cutaway wall border (never squash full wall.gltf)
-            const cwGroup = new THREE.Group();
-            const baseMesh = new THREE.Mesh(cutawayBaseGeo, cutawayBaseMat);
-            baseMesh.position.y = cutawayBaseH * 0.5;
-            const trimMesh = new THREE.Mesh(cutawayTrimGeo, cutawayTrimMat);
-            trimMesh.position.y = cutawayBaseH + cutawayTrimH * 0.5;
-            cwGroup.add(baseMesh, trimMesh);
-            cwGroup.position.set(px, 0, pz - TILE_PX * 0.22);
-            wallGroup.add(cwGroup);
-
+            cutawayWallPositions.push([px, pz - TILE_PX * 0.22]);
             // Also place floor tile underneath the cutaway wall so there is no gap
             addFloorTileInstance(x, y, px, pz);
             continue;
@@ -397,7 +426,23 @@ export class ThreeRenderer implements IGameRenderer {
     buildInstancedFloor(tileGroovesGeo, woodMatLight, diningLightPositions);
     buildInstancedFloor(tileGroovesGeo, woodMatWarm, diningWarmPositions);
 
-    if (new URLSearchParams(window.location.search).get('view') === 'collision') {
+    // Batch bottom cutaway walls into 2 InstancedMeshes (saves ~24 draw calls)
+    if (cutawayWallPositions.length > 0) {
+      const cwBaseInst = new THREE.InstancedMesh(cutawayBaseGeo, cutawayBaseMat, cutawayWallPositions.length);
+      const cwTrimInst = new THREE.InstancedMesh(cutawayTrimGeo, cutawayTrimMat, cutawayWallPositions.length);
+      for (let i = 0; i < cutawayWallPositions.length; i++) {
+        const [px, pz] = cutawayWallPositions[i]!;
+        dummyMat4.makeTranslation(px, cutawayBaseH * 0.5, pz);
+        cwBaseInst.setMatrixAt(i, dummyMat4);
+        dummyMat4.makeTranslation(px, cutawayBaseH + cutawayTrimH * 0.5, pz);
+        cwTrimInst.setMatrixAt(i, dummyMat4);
+      }
+      cwBaseInst.instanceMatrix.needsUpdate = true;
+      cwTrimInst.instanceMatrix.needsUpdate = true;
+      wallGroup.add(cwBaseInst, cwTrimInst);
+    }
+
+    if (this.isCollisionView) {
       const debugOverlay = new THREE.Group();
       const walkMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.4, depthWrite: false });
       const blockMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.4, depthWrite: false });
@@ -425,6 +470,41 @@ export class ThreeRenderer implements IGameRenderer {
       this.scene.add(debugOverlay);
     }
 
+    // Shared enlarged touch hitbox geometry/material on Layer 1 so raycaster hits it but WebGL camera (Layer 0) skips drawing it!
+    const stationTouchGeo = new THREE.BoxGeometry(TILE_PX * 1.35, TILE_PX * 1.35, TILE_PX * 1.35);
+    stationTouchGeo.userData.isSharedAsset = true;
+    const stationTouchMat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+    });
+    stationTouchMat.userData.isSharedAsset = true;
+
+    // Batch all station AO Contact Shadow Skirts into 1 InstancedMesh (single draw call, negligible cost)
+    if (level.stations.length > 0) {
+      const aoInst = new THREE.InstancedMesh(stationAoSkirtGeo, stationAoSkirtMat, level.stations.length);
+      aoInst.renderOrder = 1;
+      for (let i = 0; i < level.stations.length; i++) {
+        const st = level.stations[i]!;
+        dummyMat4.makeTranslation(st.x * TILE_PX + TILE_PX / 2, 0.15, st.y * TILE_PX + TILE_PX / 2);
+        aoInst.setMatrixAt(i, dummyMat4);
+      }
+      aoInst.instanceMatrix.needsUpdate = true;
+      floorGroup.add(aoInst);
+    }
+
+    // Freeze static floorGroup and wallGroup world matrices and disable matrixWorldAutoUpdate so Three.js skips traversing them every frame
+    floorGroup.updateMatrixWorld(true);
+    floorGroup.traverse(obj => {
+      obj.matrixAutoUpdate = false;
+      obj.matrixWorldAutoUpdate = false;
+    });
+    wallGroup.updateMatrixWorld(true);
+    wallGroup.traverse(obj => {
+      obj.matrixAutoUpdate = false;
+      obj.matrixWorldAutoUpdate = false;
+    });
+
     // Build stations (NO per-station PointLights — keeps WebGL fragment shader light loop ultra-fast at 60 FPS!)
     for (const station of level.stations) {
       const group = createStationModel(station, level);
@@ -432,18 +512,169 @@ export class ThreeRenderer implements IGameRenderer {
       const sz = station.y * TILE_PX + TILE_PX / 2;
       group.position.set(sx, 0, sz);
       group.userData.stationTile = { tx: station.x, ty: station.y };
+      group.userData.isMobileStation = isMobile;
+
+      const touchBox = new THREE.Mesh(stationTouchGeo, stationTouchMat);
+      touchBox.name = 'stationTouchHitbox';
+      touchBox.position.set(0, TILE_PX * 0.6, 0);
+      touchBox.userData.stationTile = { tx: station.x, ty: station.y };
+      touchBox.layers.set(1);
+      group.add(touchBox);
+
       this.scene.add(group);
       this.stationMeshes.set(`${station.x},${station.y}`, group);
+
+      // Freeze static station base model world matrices so Three.js skips ~400 static mesh recalcs per frame
+      group.updateMatrixWorld(true);
+      group.traverse(obj => {
+        // Skip dynamic children that get updated during gameplay (item models, progress bars, particles)
+        if (obj.userData?.isDynamic) return;
+        obj.matrixAutoUpdate = false;
+        obj.matrixWorldAutoUpdate = false;
+      });
+    }
+
+    // ★ Mobile draw-call optimization: merge all static Mesh objects that share the same material into single merged geometries.
+    // This reduces ~400 draw calls from wall GLB clones + station base meshes down to ~50-80 batched draw calls.
+    if (isMobile) {
+      this.mergeStaticSceneForMobile();
     }
 
     // Center camera
     this.updateCameraForMap(mapW, mapH, this.container?.clientWidth || 800, this.container?.clientHeight || 600);
   }
 
-  private updateCameraForMap(mapW: number, mapH: number, screenW: number, screenH: number) {
+  /**
+   * Mobile draw-call reduction: traverse the scene, collect every regular static Mesh,
+   * group by material + attribute signature, merge geometries, replace originals.
+   *
+   * InstancedMesh (floor tiles, AO skirts) are already batched and left as-is.
+   * Touch hitboxes (Layer 1), outline meshes, dynamic items, skinned meshes are skipped.
+   * Original geometries are NOT disposed — they're shared references from cached GLB clones.
+   */
+  private mergeStaticSceneForMobile(): void {
+    if (!this.scene) return;
+
+    // 1. Ensure all world matrices are up-to-date before reading them
+    this.scene.updateMatrixWorld(true);
+
+    // 2. Collect mergeable Mesh objects
+    type MergeEntry = { mesh: THREE.Mesh; matUuid: string };
+    const entries: MergeEntry[] = [];
+
+    this.scene.traverse((obj) => {
+      // Skip non-Mesh
+      if (!(obj instanceof THREE.Mesh)) return;
+      // Skip InstancedMesh (floor tiles, AO skirts — already batched)
+      if (obj instanceof THREE.InstancedMesh) return;
+      // Skip Layer 1 touch hitboxes (invisible, used for raycasting only)
+      if (obj.name === 'stationTouchHitbox') return;
+      // Skip meshes not on camera Layer 0 (e.g. Layer 1 only hitboxes, mask bit 0 = 1)
+      if (!(obj.layers.mask & 1)) return;
+      // Skip outline meshes
+      if (obj.userData?.isOutline) return;
+      // Skip dynamic objects (items, progress bars, particles)
+      if (obj.userData?.isDynamic) return;
+      // Skip skinned meshes (characters)
+      if ((obj as any).isSkinnedMesh) return;
+      // Skip meshes with array materials (multi-material)
+      if (Array.isArray(obj.material)) return;
+      // Skip meshes without geometry
+      if (!obj.geometry) return;
+      // Skip meshes with morph targets
+      if (obj.geometry.morphAttributes && Object.keys(obj.geometry.morphAttributes).length > 0) return;
+      // Skip invisible meshes
+      if (!obj.visible) return;
+
+      const mat = obj.material as THREE.Material;
+      if (!mat) return;
+
+      entries.push({ mesh: obj, matUuid: mat.uuid });
+    });
+
+    if (entries.length < 10) return; // Not enough to bother merging
+
+    // 3. Group by material UUID + attribute signature + indexed flag
+    const groups = new Map<string, MergeEntry[]>();
+    for (const entry of entries) {
+      const geo = entry.mesh.geometry;
+      const attrNames = Object.keys(geo.attributes).sort().join(',');
+      const indexed = geo.index ? 'i' : 'n';
+      const key = `${entry.matUuid}|${attrNames}|${indexed}`;
+      let arr = groups.get(key);
+      if (!arr) {
+        arr = [];
+        groups.set(key, arr);
+      }
+      arr.push(entry);
+    }
+
+    // 4. Merge each group
+    const mergedGroup = new THREE.Group();
+    mergedGroup.name = 'mergedStatic';
+    let mergedCount = 0;
+    let removedCount = 0;
+
+    for (const [, group] of groups) {
+      // Single mesh groups aren't worth merging
+      if (group.length < 2) continue;
+
+      try {
+        // Clone geometries and bake world transforms
+        const clonedGeos: THREE.BufferGeometry[] = [];
+        for (const entry of group) {
+          const cloned = entry.mesh.geometry.clone();
+          cloned.applyMatrix4(entry.mesh.matrixWorld);
+          clonedGeos.push(cloned);
+        }
+
+        const merged = mergeGeometries(clonedGeos, false);
+        if (!merged) {
+          // Dispose clones on failure
+          for (const g of clonedGeos) g.dispose();
+          continue;
+        }
+
+        // Create merged mesh with first entry's material
+        const mergedMesh = new THREE.Mesh(merged, group[0]!.mesh.material);
+        mergedMesh.matrixAutoUpdate = false;
+        mergedMesh.matrixWorldAutoUpdate = false;
+        mergedMesh.frustumCulled = false; // Merged geometry spans whole map
+        mergedMesh.name = `merged_${mergedCount}`;
+        mergedGroup.add(mergedMesh);
+        mergedCount++;
+
+        // Remove originals from their parents (do NOT dispose geometry — shared from GLB cache)
+        for (const entry of group) {
+          if (entry.mesh.parent) {
+            entry.mesh.parent.remove(entry.mesh);
+          }
+          removedCount++;
+        }
+
+        // Dispose temporary cloned geometries (the merged one is kept)
+        for (const g of clonedGeos) g.dispose();
+
+      } catch (e) {
+        console.warn('mergeStaticSceneForMobile: failed to merge group, skipping', e);
+      }
+    }
+
+    if (mergedCount > 0) {
+      mergedGroup.matrixAutoUpdate = false;
+      mergedGroup.matrixWorldAutoUpdate = false;
+      this.scene.add(mergedGroup);
+      console.log(`[MobileMerge] Merged ${removedCount} meshes → ${mergedCount} batched meshes`);
+    }
+  }
+
+  public updateCameraForMap(mapW: number, mapH: number, screenW: number, screenH: number) {
     if (!this.camera) return;
 
     const aspect = screenW / screenH;
+    if (aspect && aspect > 0 && isFinite(aspect)) {
+      this.camera.aspect = aspect;
+    }
     const fov = this.camera.fov * (Math.PI / 180);
 
     // Ready, Set, Cook! overhead isometric camera angle (~58 degrees from floor)
@@ -457,25 +688,169 @@ export class ThreeRenderer implements IGameRenderer {
     const distH = (visualH / 2) / Math.tan(fov / 2);
     const distW = aspect && aspect > 0 ? (visualW / 2) / Math.tan(fov / 2) / aspect : distH;
 
-    // Margin to frame the kitchen cleanly between top HUD and bottom recipe bar
-    const dist = (isNaN(distH) || isNaN(distW)) ? 1000 : Math.max(distH, distW) + 340;
+    // Base camera distance fitting whole map (PC original camera)
+    const baseDist = (isNaN(distH) || isNaN(distW)) ? 1000 : Math.max(distH, distW) + 340;
+    const isTouch = isTouchDevice();
+    const desiredDist = isTouch ? baseDist / 1.4 : baseDist;
 
     const cx = mapW / 2;
     const cz = mapH / 2;
     const targetZ = cz - 6;
 
-    // Position camera back and up along the tilt angle
-    const cy = dist * Math.sin(tilt);
-    const czCam = targetZ + dist * Math.cos(tilt);
+    // Store original PC camera position & lookAt
+    const cyDesktop = baseDist * Math.sin(tilt);
+    const czDesktop = targetZ + baseDist * Math.cos(tilt);
+    if (!isNaN(cx) && !isNaN(cyDesktop) && !isNaN(czDesktop)) {
+      this.desktopCameraPos.set(cx, cyDesktop, czDesktop);
+      this.desktopCameraLook.set(cx, 0, targetZ);
+    }
 
-    if (!isNaN(cx) && !isNaN(cy) && !isNaN(czCam)) {
-      this.baseCameraPos.set(cx, cy, czCam);
-      this.baseCameraLook.set(cx, 0, targetZ);
+    this.targetCameraDist = desiredDist;
 
+    if (!isTouch) {
+      this.currentCameraDist = baseDist;
+      this.currentCameraLook.copy(this.desktopCameraLook);
+      this.cameraInitialized = true;
+      this.baseCameraPos.copy(this.desktopCameraPos);
+      this.baseCameraLook.copy(this.desktopCameraLook);
       this.camera.position.copy(this.baseCameraPos);
       this.camera.lookAt(this.baseCameraLook);
       this.camera.updateProjectionMatrix();
+      this.camera.updateMatrixWorld(true);
+      return;
     }
+
+    if (!this.cameraInitialized) {
+      this.currentCameraLook.set(cx, 0, targetZ);
+      this.currentCameraDist = desiredDist;
+      this.cameraInitialized = true;
+      const cy = desiredDist * Math.sin(tilt);
+      const czCam = targetZ + desiredDist * Math.cos(tilt);
+      if (!isNaN(cx) && !isNaN(cy) && !isNaN(czCam)) {
+        this.baseCameraPos.set(cx, cy, czCam);
+        this.baseCameraLook.set(cx, 0, targetZ);
+        this.camera.position.copy(this.baseCameraPos);
+        this.camera.lookAt(this.baseCameraLook);
+      }
+    }
+
+    this.camera.updateProjectionMatrix();
+    this.camera.updateMatrixWorld(true);
+  }
+
+  public updateCameraFollow(dtSec: number): void {
+    if (!this.camera || !this.parsedLevel) return;
+
+    const isTouch = isTouchDevice();
+    if (!isTouch) {
+      this.baseCameraPos.copy(this.desktopCameraPos);
+      this.baseCameraLook.copy(this.desktopCameraLook);
+      return;
+    }
+
+    const mapW = this.parsedLevel.width * TILE_PX;
+    const mapH = this.parsedLevel.height * TILE_PX;
+    const fov = this.camera.fov * (Math.PI / 180);
+    const tilt = 58 * Math.PI / 180;
+    const dist = this.targetCameraDist || 1000;
+
+    // Compute half-frame extents from camera distance and FOV
+    const halfFrameViewH = dist * Math.tan(fov / 2);
+    const halfFrameW = halfFrameViewH * (this.camera.aspect || 1);
+    const halfFrameZ = halfFrameViewH / Math.sin(tilt);
+
+    const localId = this.frame?.activeChefId || this.frame?.localPlayerId;
+    const localPlayer =
+      this.frame?.players?.find(p => p.id === localId) ||
+      this.frame?.players?.[0];
+
+    const rawX = localPlayer ? localPlayer.x * TILE_PX : mapW / 2;
+    const rawZ = localPlayer ? localPlayer.y * TILE_PX - 6 : mapH / 2 - 6;
+
+    // Clamp target within [left + halfFrameW, right - halfFrameW]; lock at center if map < frame
+    const minX = halfFrameW;
+    const maxX = mapW - halfFrameW;
+    const clampedX = minX <= maxX
+      ? Math.max(minX, Math.min(maxX, rawX))
+      : mapW / 2;
+
+    const minZ = -6 + halfFrameZ;
+    const maxZ = mapH - 6 - halfFrameZ;
+    const clampedZ = minZ <= maxZ
+      ? Math.max(minZ, Math.min(maxZ, rawZ))
+      : mapH / 2 - 6;
+
+    // Smooth lerp towards clamped target with k = 6 / second (never snap instantaneously)
+    const k = 6;
+    const alpha = Math.min(1, Math.max(0, k * dtSec));
+    this.currentCameraLook.x += (clampedX - this.currentCameraLook.x) * alpha;
+    this.currentCameraLook.z += (clampedZ - this.currentCameraLook.z) * alpha;
+    this.currentCameraDist += (dist - this.currentCameraDist) * alpha;
+
+    this.baseCameraLook.set(this.currentCameraLook.x, 0, this.currentCameraLook.z);
+    this.baseCameraPos.set(
+      this.currentCameraLook.x,
+      this.currentCameraDist * Math.sin(tilt),
+      this.currentCameraLook.z + this.currentCameraDist * Math.cos(tilt)
+    );
+  }
+
+  public getVisibleHorizontalTiles(): number {
+    if (!this.camera) return 0;
+    const fov = this.camera.fov * (Math.PI / 180);
+    const dist = this.currentCameraDist || this.targetCameraDist || 1000;
+    const visibleWorldW = 2 * dist * Math.tan(fov / 2) * (this.camera.aspect || 1);
+    return visibleWorldW / TILE_PX;
+  }
+
+  public getMapScreenRect(viewportW?: number, viewportH?: number): {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    width: number;
+    height: number;
+  } | null {
+    if (!this.camera || !this.parsedLevel) return null;
+    const canvasRect = this.renderer?.domElement?.getBoundingClientRect();
+    const w = viewportW || canvasRect?.width || this.container?.clientWidth || 800;
+    const h = viewportH || canvasRect?.height || this.container?.clientHeight || 600;
+    const offsetLeft = canvasRect?.left || 0;
+    const offsetTop = canvasRect?.top || 0;
+
+    const mapW = this.parsedLevel.width * TILE_PX;
+    const mapH = this.parsedLevel.height * TILE_PX;
+    this.camera.updateMatrixWorld(true);
+
+    const corners = [
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(mapW, 0, 0),
+      new THREE.Vector3(0, 0, mapH),
+      new THREE.Vector3(mapW, 0, mapH),
+      new THREE.Vector3(0, TILE_PX, 0),
+      new THREE.Vector3(mapW, TILE_PX, 0),
+    ];
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const c of corners) {
+      const p = c.clone().project(this.camera);
+      const sx = offsetLeft + (p.x * 0.5 + 0.5) * w;
+      const sy = offsetTop + (1 - (p.y * 0.5 + 0.5)) * h;
+      if (sx < minX) minX = sx;
+      if (sx > maxX) maxX = sx;
+      if (sy < minY) minY = sy;
+      if (sy > maxY) maxY = sy;
+    }
+    return {
+      left: Math.round(minX),
+      top: Math.round(minY),
+      right: Math.round(maxX),
+      bottom: Math.round(maxY),
+      width: Math.round(maxX - minX),
+      height: Math.round(maxY - minY),
+    };
   }
 
   applyFrame(frame: RenderFrame): void {
@@ -487,14 +862,14 @@ export class ThreeRenderer implements IGameRenderer {
 
     if (this.frame) {
       const activeIds = new Set<string>();
+      const nowSec = performance.now() * 0.001;
 
       let anyOnFire = false;
       let anySizzling = false;
-      for (const [key, group] of this.stationMeshes.entries()) {
-        const [sx, sy] = key.split(',').map(Number);
-        const stState = this.frame.stations.find(s => s.x === sx && s.y === sy);
-        if (stState && group instanceof THREE.Group) {
-          updateStationModel(group, stState, performance.now() * 0.001, this.particleSystem);
+      for (const stState of this.frame.stations) {
+        const group = this.stationMeshes.get(`${stState.x},${stState.y}`);
+        if (group && group instanceof THREE.Group) {
+          updateStationModel(group, stState, nowSec, this.particleSystem);
           if (stState.onFire) {
             anyOnFire = true;
           } else if (stState.type === 'stove' && stState.item && stState.item.type === 'tool' && stState.item.progress > 0) {
@@ -536,7 +911,7 @@ export class ThreeRenderer implements IGameRenderer {
             }
           }).catch(e => {
             console.error('Error loading QuatModel:', e);
-            if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1') {
+            if (this.isDebug) {
               console.error(`ANIM MISSING: ${e.message}`);
             }
           });
@@ -544,10 +919,17 @@ export class ThreeRenderer implements IGameRenderer {
           this.scene.add(chef.group);
           this.playerModels.set(p.id, chef);
         } else {
+          if (chef.group.parent !== this.scene) {
+            this.scene.add(chef.group);
+          }
+          chef.group.visible = true;
           if (chef.colorHex !== colorHex) {
             chef.setAccentColor(colorHex);
           }
-          if (chef.modelUrl !== modelUrl) {
+          const needsModelReload =
+            chef.modelUrl !== modelUrl ||
+            (chef.isReady && (!chef.model || !chef.model.parent));
+          if (needsModelReload) {
             chef.modelUrl = modelUrl;
             const targetChef = chef;
             loadQuatModel(modelUrl).then(result => {
@@ -558,9 +940,10 @@ export class ThreeRenderer implements IGameRenderer {
           }
         }
 
+        chef.group.visible = true;
         chef.group.position.set(p.x * TILE_PX, 0, p.y * TILE_PX);
 
-        if (new URLSearchParams(window.location.search).get('view') === 'collision') {
+        if (this.isCollisionView) {
           let circle = chef.group.getObjectByName('debugCircle');
           if (!circle) {
             const rad = PLAYER_RADIUS * TILE_PX;
@@ -604,9 +987,9 @@ export class ThreeRenderer implements IGameRenderer {
         chef.update(dtSec, playerFrameForChef, this.frame);
 
         if (p.acting && p.held && p.held.type === 'tool' && p.held.tool === 'extinguisher') {
-          const dir = new THREE.Vector3(p.fx, 0, p.fy).normalize();
-          const pPos = new THREE.Vector3(p.x * TILE_PX, TILE_PX * 0.8, p.y * TILE_PX);
           if (Math.random() < 0.3) {
+            const dir = this.tempPartDir.set(p.fx, 0, p.fy).normalize();
+            const pPos = this.tempPartPos.set(p.x * TILE_PX, TILE_PX * 0.8, p.y * TILE_PX);
             this.particleSystem.emit('foam', pPos, 2, dir);
           }
         } else if (p.acting && p.actingStation === 'cutting') {
@@ -614,14 +997,16 @@ export class ThreeRenderer implements IGameRenderer {
         }
 
         // Overcooked 2 style dash / fast sprint dust trail at chef's feet
-        const moveSpd = Math.hypot(p.vx || 0, p.vy || 0);
-        if ((p.dashing || moveSpd > 3.1) && Math.random() < (p.dashing ? 0.55 : 0.22)) {
-          const footPos = new THREE.Vector3(
-            p.x * TILE_PX - (p.fx || 0) * TILE_PX * 0.18,
-            4,
-            p.y * TILE_PX - (p.fy || 0) * TILE_PX * 0.18
-          );
-          this.particleSystem.emit('dust', footPos, 1);
+        {
+          const moveSpd = Math.hypot(p.vx || 0, p.vy || 0);
+          if ((p.dashing || moveSpd > 3.1) && Math.random() < (p.dashing ? 0.55 : 0.22)) {
+            const footPos = this.tempPartPos.set(
+              p.x * TILE_PX - (p.fx || 0) * TILE_PX * 0.18,
+              4,
+              p.y * TILE_PX - (p.fy || 0) * TILE_PX * 0.18
+            );
+            this.particleSystem.emit('dust', footPos, 1);
+          }
         }
 
         // Ready Set Cook style green target circle on the station/counter in front of the active chef
@@ -671,7 +1056,7 @@ export class ThreeRenderer implements IGameRenderer {
               surfY,
               ty * TILE_PX + TILE_PX / 2
             );
-            const pulse = 1 + Math.sin(performance.now() * 0.007) * 0.04;
+            const pulse = 1 + Math.sin(nowSec * 7) * 0.04;
             this.targetHighlight.scale.set(pulse, 1, pulse);
             this.targetHighlight.visible = true;
           } else {
@@ -725,9 +1110,9 @@ export class ThreeRenderer implements IGameRenderer {
           tapY,
           tapTy * TILE_PX + TILE_PX / 2
         );
-        const tapPulse = 1 + Math.sin(performance.now() * 0.012) * 0.09;
+        const tapPulse = 1 + Math.sin(nowSec * 12) * 0.09;
         this.tapHighlight.scale.set(tapPulse, 1, tapPulse);
-        this.tapHighlight.rotation.y = performance.now() * 0.0025;
+        this.tapHighlight.rotation.y = nowSec * 2.5;
         this.tapHighlight.visible = true;
       } else if (this.tapHighlight) {
         this.tapHighlight.visible = false;
@@ -743,10 +1128,10 @@ export class ThreeRenderer implements IGameRenderer {
         }
         this.hintArrow.position.set(
           this.frame.hintTarget.x * TILE_PX + TILE_PX / 2,
-          100 + Math.sin(performance.now() * 0.005) * 10,
+          100 + Math.sin(nowSec * 5) * 10,
           this.frame.hintTarget.y * TILE_PX + TILE_PX / 2
         );
-        this.hintArrow.rotation.y = performance.now() * 0.002;
+        this.hintArrow.rotation.y = nowSec * 2;
         this.hintArrow.visible = true;
       } else if (this.hintArrow) {
         this.hintArrow.visible = false;
@@ -760,16 +1145,51 @@ export class ThreeRenderer implements IGameRenderer {
         }
       }
 
+      // Update camera follow & world matrix BEFORE projecting customer order bubbles
+      this.updateCameraFollow(dtSec);
+      this.camera.position.copy(this.baseCameraPos);
+      if (this.shakeTimer > 0) {
+        this.shakeTimer -= dtSec;
+        this.camera.position.x += (Math.random() - 0.5) * TILE_PX * 0.3;
+        this.camera.position.z += (Math.random() - 0.5) * TILE_PX * 0.3;
+      }
+      this.camera.lookAt(this.baseCameraLook);
+      this.camera.updateMatrixWorld(true);
+
       // Customers rendering (with smooth walk-in to chair, steady seated pose, and walk-out)
       const activeCustomerIds = new Set<number>();
-      for (const c of this.frame.customers || []) {
+      const customers = this.frame.customers || [];
+      let orderBubblesByCustomer: Map<number, HTMLElement[]> | null = null;
+      if (customers.length > 0 && typeof document !== 'undefined') {
+        const allBubbleNodes = document.querySelectorAll('.hud-order[data-customer-id]');
+        if (allBubbleNodes.length > 0) {
+          orderBubblesByCustomer = new Map<number, HTMLElement[]>();
+          allBubbleNodes.forEach(node => {
+            const el = node as HTMLElement;
+            const cid = Number(el.getAttribute('data-customer-id'));
+            if (!isNaN(cid)) {
+              let list = orderBubblesByCustomer!.get(cid);
+              if (!list) {
+                list = [];
+                orderBubblesByCustomer!.set(cid, list);
+              }
+              list.push(el);
+            }
+          });
+        }
+      }
+
+      const viewW = this.viewportW;
+      const viewH = this.viewportH;
+
+      for (const c of customers) {
         activeCustomerIds.add(c.id);
         let cm = this.customerModels.get(c.id);
         if (!cm) {
           const customerColors = [0xe63946, 0x2563eb, 0x10b981, 0xf59e0b, 0x8b5cf6, 0xec4899];
           const custColor = customerColors[(c.colorIndex ?? c.id) % customerColors.length] || 0x2563eb;
           const custModelUrl = QUAT_CUSTOMER_MODELS[c.id % QUAT_CUSTOMER_MODELS.length] || QUAT_CUSTOMER_MODELS[0];
-          cm = new ChefModel(custColor, false);
+          cm = new ChefModel(custColor, false, true);
           cm.setIsCustomer(true);
           cm.id = `customer_${c.id}`;
           cm.modelUrl = custModelUrl;
@@ -834,9 +1254,9 @@ export class ThreeRenderer implements IGameRenderer {
             // Seated on the chair facing the table (SitDown plays once and clamps on seated frame)
             cm.group.position.set(seatX, 0, seatZ);
             if (c.state === 'eating') {
-              cm.group.rotation.y = Math.PI / 2 + Math.sin(performance.now() * 0.008) * 0.07;
+              cm.group.rotation.y = Math.PI / 2 + Math.sin(nowSec * 8) * 0.07;
             } else if (c.angry) {
-              cm.group.rotation.y = Math.PI / 2 + Math.sin(performance.now() * 0.022) * 0.06;
+              cm.group.rotation.y = Math.PI / 2 + Math.sin(nowSec * 22) * 0.06;
             } else {
               cm.group.rotation.y = Math.PI / 2;
             }
@@ -852,25 +1272,23 @@ export class ThreeRenderer implements IGameRenderer {
         cm.update(dtSec, null, null);
         cm.applyCustomerSeatedPose(c.state, c.angry);
 
-        // Update DOM order bubble position if they have an active or waiting order
-        const els = document.querySelectorAll(`.hud-order[data-customer-id="${c.id}"]`);
-        if (els.length > 0) {
+        // Update DOM order bubble position without synchronous DOM reflows
+        const els = orderBubblesByCustomer?.get(c.id);
+        if (els && els.length > 0) {
           const headY = (c.state === 'seated_waiting_order' || c.state === 'order_taken' || c.state === 'eating')
             ? TILE_PX * 1.15
             : TILE_PX * 1.5;
           this.tempProjVec.set(curX, headY, curZ).project(this.camera);
-          const w = this.renderer!.domElement.clientWidth;
-          const h = this.renderer!.domElement.clientHeight;
-          const screenX = Math.round((this.tempProjVec.x * 0.5 + 0.5) * w);
-          const screenY = Math.round((1 - (this.tempProjVec.y * 0.5 + 0.5)) * h);
+          const screenX = Math.round((this.tempProjVec.x * 0.5 + 0.5) * viewW);
+          const screenY = Math.round((1 - (this.tempProjVec.y * 0.5 + 0.5)) * viewH);
           const leftStr = `${screenX}px`;
           const topStr = `${screenY}px`;
-          els.forEach(elNode => {
-            const el = elNode as HTMLElement;
+          for (let i = 0; i < els.length; i++) {
+            const el = els[i]!;
             if (el.style.left !== leftStr) el.style.left = leftStr;
             if (el.style.top !== topStr) el.style.top = topStr;
             if (el.style.position !== 'absolute') el.style.position = 'absolute';
-          });
+          }
         }
       }
 
@@ -894,8 +1312,6 @@ export class ThreeRenderer implements IGameRenderer {
         }
 
         // Simple parabolic arc based on progress (0 to 1) or positions
-        // Since frame only has current x,y, we use it directly. We can add some arc if we have t.
-        // Let's assume z is height.
         const height = TILE_PX / 2 + Math.sin(Math.PI * (proj.progress || 0.5)) * TILE_PX;
         pModel.position.set(proj.x * TILE_PX + TILE_PX / 2, height, proj.y * TILE_PX + TILE_PX / 2);
         pModel.rotation.x += dtSec * 10;
@@ -907,20 +1323,6 @@ export class ThreeRenderer implements IGameRenderer {
           this.projectileModels.delete(id);
         }
       }
-
-      // Restore base camera position
-      this.camera.position.copy(this.baseCameraPos);
-
-      // Screenshake
-      if (this.shakeTimer > 0) {
-        this.shakeTimer -= dtSec;
-        this.camera.position.x += (Math.random() - 0.5) * TILE_PX * 0.3;
-        this.camera.position.z += (Math.random() - 0.5) * TILE_PX * 0.3;
-      }
-
-      this.camera.lookAt(this.baseCameraLook);
-
-
     }
 
     if (this.sceneryManager) {
@@ -960,7 +1362,7 @@ export class ThreeRenderer implements IGameRenderer {
 
     // Add specific particles on events if needed, for instance, confetti on serve_ok
     if (ev.type === 'serve_ok' && ev.x !== undefined && ev.y !== undefined) {
-      const pos = new THREE.Vector3(ev.x * TILE_PX + TILE_PX / 2, TILE_PX, ev.y * TILE_PX + TILE_PX / 2);
+      const pos = this.tempPartPos.set(ev.x * TILE_PX + TILE_PX / 2, TILE_PX, ev.y * TILE_PX + TILE_PX / 2);
       this.particleSystem.emit('chop', pos, 5); // using chop particles as generic confetti for now
     }
 
@@ -973,17 +1375,20 @@ export class ThreeRenderer implements IGameRenderer {
   resize(width: number, height: number, dpr: number): void {
     if (this.renderer && this.camera) {
       const isMobile = isMobileOrCoarseDevice();
-      const maxDpr = isMobile ? 1.25 : 1.5;
-      this.renderer.setSize(width, height);
+      this.isMobileDevice = isMobile;
+      const maxDpr = isMobile ? 0.75 : 1.35;
+      this.viewportW = width || 800;
+      this.viewportH = height || 600;
+      this.renderer.setSize(this.viewportW, this.viewportH);
       this.renderer.setPixelRatio(Math.min(dpr || 1, maxDpr));
 
-      this.camera.aspect = width / height;
+      this.camera.aspect = this.viewportW / this.viewportH;
       this.camera.updateProjectionMatrix();
 
       if (this.parsedLevel) {
         const mapW = this.parsedLevel.width * TILE_PX;
         const mapH = this.parsedLevel.height * TILE_PX;
-        this.updateCameraForMap(mapW, mapH, width, height);
+        this.updateCameraForMap(mapW, mapH, this.viewportW, this.viewportH);
       }
     }
   }
@@ -991,12 +1396,13 @@ export class ThreeRenderer implements IGameRenderer {
   setQuality(q: 'low' | 'medium' | 'high'): void {
     if (!this.renderer) return;
     const isMobile = isMobileOrCoarseDevice();
+    this.isMobileDevice = isMobile;
 
     if (q === 'low') {
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1.15 : 1));
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 0.60 : 1));
       this.renderer.shadowMap.enabled = false;
     } else {
-      const maxDpr = isMobile ? 1.25 : 1.5;
+      const maxDpr = isMobile ? 0.75 : 1.35;
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
       this.renderer.shadowMap.enabled = false;
     }
@@ -1014,17 +1420,19 @@ export class ThreeRenderer implements IGameRenderer {
   screenToTile(clientX: number, clientY: number): { tx: number; ty: number } | null {
     if (!this.renderer || !this.camera || !this.parsedLevel) return null;
 
-    // 1. Check if tap landed directly on a customer's floating order bubble
+    // 1. Check if tap landed directly on a customer's floating order bubble (min 44x44px touch area)
     if (this.frame?.customers) {
       const bubbleEls = document.querySelectorAll('.hud-order.bubble[data-customer-id]');
       for (const elNode of Array.from(bubbleEls)) {
         const el = elNode as HTMLElement;
         const bRect = el.getBoundingClientRect();
+        const padX = Math.max(8, (44 - bRect.width) * 0.5);
+        const padY = Math.max(8, (44 - bRect.height) * 0.5);
         if (
-          clientX >= bRect.left - 8 &&
-          clientX <= bRect.right + 8 &&
-          clientY >= bRect.top - 8 &&
-          clientY <= bRect.bottom + 8
+          clientX >= bRect.left - padX &&
+          clientX <= bRect.right + padX &&
+          clientY >= bRect.top - padY &&
+          clientY <= bRect.bottom + padY
         ) {
           const cid = Number(el.getAttribute('data-customer-id'));
           const cust = this.frame.customers.find(c => c.id === cid);
@@ -1070,6 +1478,33 @@ export class ThreeRenderer implements IGameRenderer {
           obj = obj.parent;
         }
       }
+    }
+
+    // 3.5. Ensure minimum 44x44px screen-space touch target for all interactive stations on mobile/touch
+    const MIN_TOUCH_TARGET_PX = 44;
+    const halfTouchPx = MIN_TOUCH_TARGET_PX * 0.5;
+    let bestStationTile: { tx: number; ty: number } | null = null;
+    let bestDistSq = Infinity;
+    this.camera.updateMatrixWorld(true);
+    for (const st of this.parsedLevel.stations) {
+      const wx = st.x * TILE_PX + TILE_PX * 0.5;
+      const wy = st.type === 'table' ? TABLE_SURFACE_Y * 0.6 : COUNTER_SURFACE_Y * 0.6;
+      const wz = st.y * TILE_PX + TILE_PX * 0.5;
+      this.tempProjVec.set(wx, wy, wz).project(this.camera);
+      const sx = rect.left + (this.tempProjVec.x * 0.5 + 0.5) * rect.width;
+      const sy = rect.top + (1 - (this.tempProjVec.y * 0.5 + 0.5)) * rect.height;
+      const dx = clientX - sx;
+      const dy = clientY - sy;
+      if (Math.abs(dx) <= halfTouchPx && Math.abs(dy) <= halfTouchPx) {
+        const dSq = dx * dx + dy * dy;
+        if (dSq < bestDistSq) {
+          bestDistSq = dSq;
+          bestStationTile = { tx: st.x, ty: st.y };
+        }
+      }
+    }
+    if (bestStationTile) {
+      return bestStationTile;
     }
 
     // 4. Fallback: intersect counter surface height plane for station tiles, then floor plane y = 0

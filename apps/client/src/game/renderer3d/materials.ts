@@ -13,10 +13,8 @@ export interface ClayMaterialOptions {
 }
 
 /**
- * Overcooked! Soft Stylized Matte Clay / Vinyl PBR Material (có cache)
- * - Đất sét / Gỗ / Thực phẩm / Da / Quần áo: roughness = 0.78, metalness = 0.0, envMapIntensity = 0.6
- * - Inox / Kim loại xước mờ: roughness = 0.32, metalness = 0.35, envMapIntensity = 1.0
- * - Sứ trắng / Nước súp / Nước sốt: roughness = 0.22, metalness = 0.0
+ * Overcooked! Soft Stylized Matte Clay / Vinyl Material (có cache)
+ * Mặc định: roughness = 0.80, metalness = 0.05 (Matte Clay mềm mại, không bóng gắt như nhựa/kim loại)
  */
 export function toon(
   colorHex: number,

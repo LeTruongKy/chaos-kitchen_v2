@@ -1,6 +1,6 @@
 import { LevelDef, GameEvent, PlayerInput, parseLevel } from '@kitchen/core';
 import { NetClient } from '../net/NetClient';
-import { IGameRenderer } from './render/IGameRenderer';
+import { IGameRenderer, RenderFrame } from './render/IGameRenderer';
 import { PhaserRenderer } from './render/PhaserRenderer';
 import { FrameBuilder } from './frame/FrameBuilder';
 import { getSettings } from '../state/settings';
@@ -14,6 +14,7 @@ import { appStore } from '../state/store';
 export class GameScreen {
   private renderer: IGameRenderer | null = null;
   private frameBuilder: FrameBuilder;
+  private latestFrame: RenderFrame | null = null;
   private inputController: InputController;
   private tapPilot: TapPilot;
   private rafId: number = 0;
@@ -56,7 +57,7 @@ export class GameScreen {
     });
 
     this.inputController.setPilotProvider(
-      () => this.tapPilot.nextInput(this.frameBuilder.buildFrame()),
+      () => this.tapPilot.nextInput(this.latestFrame ?? this.frameBuilder.buildFrame()),
       () => this.tapPilot.cancel()
     );
 
@@ -64,6 +65,7 @@ export class GameScreen {
 
     this.onSnapshot = (snap) => {
       this.frameBuilder.onSnapshot(snap, globalThis.performance.now());
+      this.latestFrame = null;
       if (this.hintEngine && !this.hintEngine.isCompleted()) {
         const localId = this.netClient.sessionId || '';
         this.hintEngine.update(snap, this.gameEvents, localId);
@@ -71,6 +73,9 @@ export class GameScreen {
       }
     };
     this.netClient.on('snapshot', this.onSnapshot);
+    if (this.netClient.lastSnapshot) {
+      this.onSnapshot(this.netClient.lastSnapshot);
+    }
 
     this.onEvent = (ev: GameEvent) => {
       this.renderer?.handleEvent(ev);
@@ -137,7 +142,7 @@ export class GameScreen {
     if (this.renderer?.screenToTile) {
       const tile = this.renderer.screenToTile(e.clientX, e.clientY);
       if (tile) {
-        const frame = this.frameBuilder.buildFrame();
+        const frame = this.latestFrame ?? this.frameBuilder.buildFrame();
         this.tapPilot.setTargetTile(tile.tx, tile.ty, frame);
       }
     }
@@ -184,6 +189,12 @@ export class GameScreen {
 
   private loop = (time: number) => {
     this.rafId = requestAnimationFrame(this.loop);
+
+    // Skip rendering when tab is hidden to save GPU/CPU on mobile
+    if (document.hidden) {
+      this.lastTime = time;
+      return;
+    }
     
     const deltaMs = time - this.lastTime;
     this.lastTime = time;
@@ -192,6 +203,7 @@ export class GameScreen {
     this.frameBuilder.updatePredictorDisplay(deltaMs);
 
     const frame = this.frameBuilder.buildFrame();
+    this.latestFrame = frame;
     if (frame && this.renderer) {
       if (this.currentHint && this.currentHint.target) {
         frame.hintTarget = this.currentHint.target;

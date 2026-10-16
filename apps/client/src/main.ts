@@ -162,6 +162,22 @@ fpsBadge.style.borderRadius = '4px';
 fpsBadge.style.pointerEvents = 'none';
 document.body.appendChild(fpsBadge);
 
+const buildHash = import.meta.env.VITE_BUILD_HASH;
+if (buildHash) {
+  const buildBadge = document.createElement('div');
+  buildBadge.id = 'build-badge';
+  buildBadge.style.position = 'fixed';
+  buildBadge.style.bottom = '2px';
+  buildBadge.style.right = '4px';
+  buildBadge.style.zIndex = '9999';
+  buildBadge.style.color = 'rgba(255, 255, 255, 0.4)';
+  buildBadge.style.fontFamily = 'monospace';
+  buildBadge.style.fontSize = '10px';
+  buildBadge.style.pointerEvents = 'none';
+  buildBadge.textContent = `build ${buildHash}`;
+  document.body.appendChild(buildBadge);
+}
+
 let fpsFrames = 0;
 let lastFpsTime = performance.now();
 let fpsRafId = 0;

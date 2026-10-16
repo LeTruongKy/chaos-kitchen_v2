@@ -23,3 +23,21 @@
    - Khi touch: `desiredDist = baseDist / 1.4` (zoom 1.4×, giữ nguyên góc nghiêng `58°` và `FOV = 30°`).
    - Mỗi frame trong `updateCameraFollow(dtSec)`: mục tiêu nhìn là vị trí người chơi cục bộ `(p.x * TILE_PX, 0, p.y * TILE_PX - 6)`, kẹp trong biên `[halfFrameW, mapW - halfFrameW]` và `[-6 + halfFrameZ, mapH - 6 - halfFrameZ]` (nếu bản đồ nhỏ hơn khung ở trục nào thì khóa ở giữa bản đồ trục đó), và nội suy mượt bằng lerp với `k = 6` (`alpha = Math.min(1, 6 * dtSec)`).
    - Trên PC (không touch): giữ nguyên hoàn toàn camera cố định toàn bản đồ.
+
+5. **Hiển thị phiên bản build (BƯỚC 0b)**:
+   - Sử dụng `import.meta.env.VITE_BUILD_HASH` được inject tự động qua `apps/client/vite.config.ts` bằng `child_process.execSync('git rev-parse --short HEAD')` khi build hoặc biến môi trường `VITE_BUILD_HASH`.
+   - Khai báo type trong `apps/client/vite-env.d.ts` và hiển thị badge ở góc dưới bên phải (`id="build-badge"`, font monospace 10px, màu mờ `rgba(255, 255, 255, 0.4)`, `pointer-events: none`, nội dung `"build <hash>"`).
+
+6. **Sửa độ nét màn hình & Pixel Ratio (BƯỚC 2)**:
+   - Loại bỏ hoàn toàn giá trị hard-code cũ `maxDpr = isMobile ? 0.75 : 1.35` và `isMobile ? 0.60 : 1` gây hiện tượng mờ mờ trên màn hình điện thoại có DPR cao.
+   - Chuẩn hóa: `pixel ratio = Math.min(window.devicePixelRatio || 1, 2)`. Áp dụng cho cả PC và điện thoại.
+   - Khi resize: `renderer.setSize(width, height, false)` với kích thước CSS, đồng thời gán `canvas.style.width/height` để canvas không bị phóng to bằng CSS.
+   - Khi `quality = low` (touch mặc định): công thức là `dpr >= 2 ? 1.5 : Math.min(dpr, 1.5)` (đảm bảo không thấp hơn 1.5 trên điện thoại có DPR ≥ 2, không vượt quá 2).
+
+7. **Điều kiện nhận biết touch & Camera zoom ~9 ô ngang (BƯỚC 3)**:
+   - Nhận biết touch: `(typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) || 'ontouchstart' in window || (typeof window.innerWidth === 'number' && window.innerWidth <= 768)`. Không dùng `navigator.maxTouchPoints > 0` vì trên Windows desktop/laptop có màn hình cảm ứng hoặc driver, Chromium luôn báo `maxTouchPoints = 256` khiến PC bị nhận nhầm thành touch.
+   - Khoảng cách camera khi touch: thay thế hệ số 1.4 cố định cũ bằng công thức hình học chính xác để hiển thị 9 ô ngang:
+     `d = (W / 2) / (tan(FOV / 2) * aspect)`
+     với `W = 9 * TILE_PX = 432`, `FOV = 30°` (`tan(15°) ≈ 0.267949`). Công thức này bảo đảm luôn hiển thị đúng 9 ô ngang trên mọi tỉ lệ khung hình (cả portrait và landscape).
+   - Camera lerp `k = 6/giây`, kẹp biên bản đồ có tính bù trừ lề an toàn tối thiểu 40px trên màn hình (`padWorldX = (40 / viewportW) * (2 * halfFrameW)`), khóa ở giữa trục nếu bản đồ nhỏ hơn khung.
+   - Giữ nguyên 100% camera và giao diện trên PC (1366×768, không touch).

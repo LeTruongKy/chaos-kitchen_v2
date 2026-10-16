@@ -7,7 +7,8 @@ export function isTouchDevice(): boolean {
   if (typeof window === 'undefined') return false;
   return (
     (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) ||
-    'ontouchstart' in window
+    'ontouchstart' in window ||
+    (typeof window.innerWidth === 'number' && window.innerWidth <= 768)
   );
 }
 

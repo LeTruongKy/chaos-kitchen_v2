@@ -101,6 +101,7 @@ export class ThreeRenderer implements IGameRenderer {
   private currentCameraDist = 0;
   private targetCameraDist = 0;
   private cameraInitialized = false;
+  private currentQuality: 'low' | 'medium' | 'high' = 'medium';
 
   async init(container: HTMLElement, level: LevelDef, opts: RendererOptions): Promise<void> {
     this.container = container;
@@ -135,11 +136,15 @@ export class ThreeRenderer implements IGameRenderer {
       generateLiveThumbnails(this.renderer);
     }
 
-    const maxDpr = isMobile ? 0.75 : 1.35;
     this.viewportW = container.clientWidth || 800;
     this.viewportH = container.clientHeight || 600;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
-    this.renderer.setSize(this.viewportW, this.viewportH);
+    const targetDpr = this.getQualityPixelRatio();
+    this.renderer.setPixelRatio(targetDpr);
+    this.renderer.setSize(this.viewportW, this.viewportH, false);
+    if (this.renderer.domElement) {
+      this.renderer.domElement.style.width = `${this.viewportW}px`;
+      this.renderer.domElement.style.height = `${this.viewportH}px`;
+    }
     this.renderer.shadowMap.enabled = false;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = isMobile ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
@@ -691,7 +696,12 @@ export class ThreeRenderer implements IGameRenderer {
     // Base camera distance fitting whole map (PC original camera)
     const baseDist = (isNaN(distH) || isNaN(distW)) ? 1000 : Math.max(distH, distW) + 340;
     const isTouch = isTouchDevice();
-    const desiredDist = isTouch ? baseDist / 1.4 : baseDist;
+    // Mobile touch zoom: target ~9 horizontal tiles (9 ± 1 tiles)
+    // Formula: d = (W / 2) / (tan(FOV / 2) * aspect) where W = targetTilesW * TILE_PX
+    const targetTilesW = 16;
+    const targetWorldW = targetTilesW * TILE_PX;
+    const touchDist = (targetWorldW / 2) / (Math.tan(fov / 2) * (aspect || 1));
+    const desiredDist = isTouch ? touchDist : baseDist;
 
     const cx = mapW / 2;
     const cz = mapH / 2;
@@ -767,15 +777,19 @@ export class ThreeRenderer implements IGameRenderer {
     const rawX = localPlayer ? localPlayer.x * TILE_PX : mapW / 2;
     const rawZ = localPlayer ? localPlayer.y * TILE_PX - 6 : mapH / 2 - 6;
 
-    // Clamp target within [left + halfFrameW, right - halfFrameW]; lock at center if map < frame
-    const minX = halfFrameW;
-    const maxX = mapW - halfFrameW;
+    // Boundary padding in world units equivalent to at least 40px screen margin
+    const padWorldX = (40 / (this.viewportW || 800)) * (2 * halfFrameW);
+    const padWorldZ = (40 / (this.viewportH || 600)) * (2 * halfFrameZ);
+
+    // Clamp target within [minX, maxX]; lock at center if map < frame
+    const minX = halfFrameW - padWorldX;
+    const maxX = mapW - halfFrameW + padWorldX;
     const clampedX = minX <= maxX
       ? Math.max(minX, Math.min(maxX, rawX))
       : mapW / 2;
 
-    const minZ = -6 + halfFrameZ;
-    const maxZ = mapH - 6 - halfFrameZ;
+    const minZ = -6 + halfFrameZ - padWorldZ;
+    const maxZ = mapH - 6 - halfFrameZ + padWorldZ;
     const clampedZ = minZ <= maxZ
       ? Math.max(minZ, Math.min(maxZ, rawZ))
       : mapH / 2 - 6;
@@ -1372,15 +1386,31 @@ export class ThreeRenderer implements IGameRenderer {
     }
   }
 
-  resize(width: number, height: number, dpr: number): void {
+  public getQualityPixelRatio(q?: 'low' | 'medium' | 'high'): number {
+    const quality = q || this.currentQuality;
+    const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+    if (quality === 'low') {
+      // Khi quality = low: pixel ratio = min(devicePixelRatio, 1.5) nhưng KHÔNG thấp hơn 1.5 trên điện thoại có DPR >= 2
+      return dpr >= 2 ? 1.5 : Math.min(dpr, 1.5);
+    }
+    // Mặc định và high/medium: min(devicePixelRatio, 2)
+    return Math.min(dpr, 2);
+  }
+
+  resize(width: number, height: number, dpr?: number): void {
     if (this.renderer && this.camera) {
       const isMobile = isMobileOrCoarseDevice();
       this.isMobileDevice = isMobile;
-      const maxDpr = isMobile ? 0.75 : 1.35;
       this.viewportW = width || 800;
       this.viewportH = height || 600;
-      this.renderer.setSize(this.viewportW, this.viewportH);
-      this.renderer.setPixelRatio(Math.min(dpr || 1, maxDpr));
+
+      const targetDpr = this.getQualityPixelRatio();
+      this.renderer.setPixelRatio(targetDpr);
+      this.renderer.setSize(this.viewportW, this.viewportH, false);
+      if (this.renderer.domElement) {
+        this.renderer.domElement.style.width = `${this.viewportW}px`;
+        this.renderer.domElement.style.height = `${this.viewportH}px`;
+      }
 
       this.camera.aspect = this.viewportW / this.viewportH;
       this.camera.updateProjectionMatrix();
@@ -1395,16 +1425,17 @@ export class ThreeRenderer implements IGameRenderer {
 
   setQuality(q: 'low' | 'medium' | 'high'): void {
     if (!this.renderer) return;
+    this.currentQuality = q;
     const isMobile = isMobileOrCoarseDevice();
     this.isMobileDevice = isMobile;
 
-    if (q === 'low') {
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 0.60 : 1));
-      this.renderer.shadowMap.enabled = false;
-    } else {
-      const maxDpr = isMobile ? 0.75 : 1.35;
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
-      this.renderer.shadowMap.enabled = false;
+    const targetDpr = this.getQualityPixelRatio(q);
+    this.renderer.setPixelRatio(targetDpr);
+    this.renderer.shadowMap.enabled = false;
+    if (this.renderer.domElement && this.viewportW && this.viewportH) {
+      this.renderer.setSize(this.viewportW, this.viewportH, false);
+      this.renderer.domElement.style.width = `${this.viewportW}px`;
+      this.renderer.domElement.style.height = `${this.viewportH}px`;
     }
 
     // Toggle outlines
